@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  fastapi:
+    build: .
+    container_name: fastapi-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app  # 將應用代碼映射到容器
+      - ./.env:/app/.env
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload  # 使用 uvicorn 並啟用熱重載
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: dtsms_user
+      POSTGRES_PASSWORD: dtsms_password
+      POSTGRES_DB: dtsms_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer:latest
+    container_name: adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+    driver: local
