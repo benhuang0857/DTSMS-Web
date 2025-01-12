@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  pnpm-app:
+    build:
+      context: . # 指向 Dockerfile 所在的目錄
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/app # 如果需要和本機同步，可以保留這行
+    ports:
+      - "5173:5173" # 如果需要對外開放埠號
+    stdin_open: true # 開啟交互式 shell
+    tty: true        # 支持 TTY
