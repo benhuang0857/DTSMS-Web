@@ -4,3 +4,4 @@ sqlalchemy
 alembic
 python-dotenv
 psycopg2-binary>=2.9,<3.0
+passlib[bcrypt]

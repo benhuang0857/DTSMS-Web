@@ -1,8 +1,16 @@
 from fastapi import FastAPI
-from routers import user, file_upload
+from routers import users, file_uploads, logs, reports, roles, automations, actions
 
 app = FastAPI()
 
-# 注册用户相关路由
-app.include_router(user.router, prefix="/users", tags=["users"])
-app.include_router(file_upload.router, prefix="/file_uploads", tags=["file_uploads"])
+app.include_router(logs.router, prefix="/logs", tags=["logs"])
+app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(roles.router, prefix="/roles", tags=["roles"])
+app.include_router(reports.router, prefix="/reports", tags=["reports"])
+app.include_router(file_uploads.router, prefix="/file_uploads", tags=["file_uploads"])
+app.include_router(automations.router, prefix="/automations", tags=["automations"])
+app.include_router(actions.router, prefix="/actions", tags=["actions"])
+
+@app.get("/")
+def read_root():
+    return {"message": "DTSMS wrok!"}
