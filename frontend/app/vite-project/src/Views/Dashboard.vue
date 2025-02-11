@@ -1,36 +1,52 @@
 <template>
-  <div class="flex h-screen">
-    <!-- 左側菜單 -->
-    <LeftMenu :menuItems="menuItems" />
+    <div class="flex h-screen">
+        <LeftMenu :menuItems="menuItems" />
 
-    <!-- 主內容 -->
-    <main class="flex-1 bg-gray-100 p-6">
-      <header class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
-      </header>
-      <!-- 這裡可以添加其他內容 -->
-      <p class="text-gray-600">Welcome to the Dashboard. Customize this section as needed.</p>
-    </main>
-  </div>
+        <main class="flex-1 flex">
+            <div class="dashboard-container flex-1 p-10px">
+                <TopSection :rows="tableRows" />
+                <DragAndDrop />
+                <UploadSection token="TWTWT1089TWT1089&xsrf" :uploadedFiles="['document-name.PDF']" />
+            </div>
+        </main>
+
+    </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import LeftMenu from '@/components/LeftMenu.vue';
+import TopSection from '@/components/TopSection.vue';
+import DragAndDrop from '../components/DragAndDrop.vue';
+import UploadSection from '../components/UploadSection.vue';
 
 export default defineComponent({
-  name: 'Dashboard',
-  components: { LeftMenu },
-  setup() {
-    const menuItems = ref([
-      { label: 'Dashboard', link: '/dashboard', icon: 'fas fa-tachometer-alt', active: true },
-      { label: 'Automation Control', link: '/automation', icon: 'fas fa-robot', active: false },
-      { label: 'Download History', link: '/downloads', icon: 'fas fa-download', active: false },
-      { label: 'Submission', link: '/submission', icon: 'fas fa-upload', active: false },
-      { label: 'Setting', link: '/settings', icon: 'fas fa-cog', active: false },
-    ]);
+    name: 'Dashboard',
+    components: {
+        LeftMenu,
+        TopSection,
+        DragAndDrop,
+        UploadSection
+    },
+    setup() {
+        const menuItems = ref([
+            { label: 'Dashboard', link: '/dashboard', icon: 'fas fa-tachometer-alt', active: true },
+            { label: 'Automation Control', link: '/automation', icon: 'fas fa-robot', active: false },
+            { label: 'Download History', link: '/downloads', icon: 'fas fa-download', active: false },
+            { label: 'Submission', link: '/submissions', icon: 'fas fa-upload', active: false },
+            { label: 'Setting', link: '/setting', icon: 'fas fa-cog', active: false },
+        ]);
 
-    return { menuItems };
-  },
+        const tableRows = ref([
+            { label: 'Macro', value: 12, percentage: '28.6%' },
+            { label: 'Boot Strap Sector', value: 22, percentage: '42.9%' },
+            { label: 'File Infectors Virus', value: 12, percentage: '28.6%' },
+            { label: 'Label 4', value: 12, percentage: '28.6%' },
+            { label: 'Label 5', value: 7, percentage: '14.3%' },
+            { label: 'Label 6', value: 7, percentage: '14.3%' },
+        ]);
+
+        return { menuItems, tableRows };
+    },
 });
 </script>

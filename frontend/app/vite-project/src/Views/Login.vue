@@ -45,7 +45,7 @@
       <!-- 右側：圖片 -->
       <div
         class="w-1/2 bg-cover bg-center"
-        style="background-image: url('https://img.freepik.com/premium-photo/green-leaves-pattern-background_71790-124.jpg')"
+        style="background-image: url('https://mediaproxy.salon.com/width/1200/https://media2.salon.com/2021/02/romanesco-broccoli-0209212.jpg')"
       ></div>
     </div>
   </template>
