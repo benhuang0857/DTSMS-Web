@@ -1,8 +1,8 @@
-"""create logs table
+"""Create logs table
 
-Revision ID: 818af49a3fb8
-Revises: b7933248257c
-Create Date: 2024-12-28 13:57:56.955379
+Revision ID: 8b05db72abb8
+Revises: 1f6bf597b47e
+Create Date: 2025-02-11 11:35:29.885540
 
 """
 from typing import Sequence, Union
@@ -11,10 +11,9 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.sql import func
 
-
 # revision identifiers, used by Alembic.
-revision: str = '818af49a3fb8'
-down_revision: Union[str, None] = 'b7933248257c'
+revision: str = '8b05db72abb8'
+down_revision: Union[str, None] = '1f6bf597b47e'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -1,8 +1,8 @@
-"""create file_uploads table
+"""Create file_uploads table
 
-Revision ID: b7933248257c
-Revises: c5363c52bcc0
-Create Date: 2024-12-28 13:56:17.398599
+Revision ID: 9be0cbce97e6
+Revises: 8b05db72abb8
+Create Date: 2025-02-11 11:36:38.605069
 
 """
 from typing import Sequence, Union
@@ -11,16 +11,15 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.sql import func
 
-
 # revision identifiers, used by Alembic.
-revision: str = 'b7933248257c'
-down_revision: Union[str, None] = 'c5363c52bcc0'
+revision: str = '9be0cbce97e6'
+down_revision: Union[str, None] = '8b05db72abb8'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.create_table(
+        op.create_table(
         'file_uploads',
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('tracking_num', sa.String(100), unique=True, index=True),
