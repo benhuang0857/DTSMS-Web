@@ -4,6 +4,7 @@ from passlib.context import CryptContext
 from models import User as UserModel
 from schemas import UserCreate, User, UserUpdate
 from database import get_db
+from routers.auth import get_current_user
 
 router = APIRouter()
 
@@ -14,7 +15,9 @@ def hash_password(password: str) -> str:
 
 # Create User
 @router.post("/", response_model=User)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
+def create_user(user: UserCreate, 
+                db: Session = Depends(get_db),
+                current_user: UserModel = Depends(get_current_user)):
     if db.query(UserModel).filter(UserModel.username == user.username).first():
         raise HTTPException(status_code=400, detail="Username already registered")
     if db.query(UserModel).filter(UserModel.email == user.email.lower()).first():
@@ -37,12 +40,16 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 # Get User List (with Pagination)
 @router.get("/", response_model=list[User])
-def get_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+def get_users(skip: int = 0, limit: int = 10, 
+              db: Session = Depends(get_db), 
+              current_user: UserModel = Depends(get_current_user)):
     return db.query(UserModel).offset(skip).limit(limit).all()
 
 # Get Single User
 @router.get("/{user_id}", response_model=User)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(user_id: int, 
+            db: Session = Depends(get_db),
+            current_user: UserModel = Depends(get_current_user)):
     db_user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -50,7 +57,9 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 # Update User
 @router.put("/{user_id}", response_model=User)
-def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
+def update_user(user_id: int, user: UserUpdate, 
+                db: Session = Depends(get_db),
+                current_user: UserModel = Depends(get_current_user)):
     db_user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -70,7 +79,9 @@ def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
 
 # Delete User
 @router.delete("/{user_id}", status_code=204)
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(user_id: int, 
+                db: Session = Depends(get_db),
+                current_user: UserModel = Depends(get_current_user)):
     db_user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
