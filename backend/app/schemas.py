@@ -39,18 +39,29 @@ class User(UserBase):
 # --- FileUpload Schemas ---
 class FileUploadBase(BaseModel):
     tracking_num: str
-    user_id: Optional[int] = None  # 指向 User 的外鍵
+    user_id: Optional[int] = None
     token: Optional[str] = None
     status: Optional[str] = 'process'
+    filename: str
+    size: int
+    file_path: str
 
-class FileUploadCreate(FileUploadBase):
-    pass  # 创建时与基本模式相同
+class FileUploadCreate(BaseModel):
+    user_id: Optional[int] = None
+    token: Optional[str] = None
+    status: Optional[str] = 'process'
+    filename: str
+    size: int
+    file_path: str
 
 class FileUploadUpdate(BaseModel):
     tracking_num: Optional[str] = None
-    user_id: Optional[int] = None  # 支持更新 user_id
+    user_id: Optional[int] = None
     token: Optional[str] = None
     status: Optional[str] = None
+    filename: Optional[str] = None
+    size: Optional[int] = None
+    file_path: Optional[str] = None
 
 class FileUpload(FileUploadBase):
     id: int
@@ -58,7 +69,7 @@ class FileUpload(FileUploadBase):
     updated_time: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Log Schemas ---
 class LogBase(BaseModel):
