@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer  # 🔹 確保正確導入
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
@@ -18,8 +18,6 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 360
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# ✅ 確保 `oauth2_scheme` 定義在 `get_current_user` 之前
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth")
 
 router = APIRouter()
@@ -45,7 +43,6 @@ def login_user(request: LoginRequest, db: Session = Depends(get_db)):
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
-# ✅ 修正 `get_current_user` 確保 `oauth2_scheme` 正確使用
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
     """Middleware-like function to validate JWT token and get the current user"""
     credentials_exception = HTTPException(
@@ -67,3 +64,9 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise credentials_exception
 
     return user
+
+# 新增驗證端點
+@router.get("/verify")
+def verify_token(current_user: User = Depends(get_current_user)):
+    """驗證 token 是否有效，返回成功訊息"""
+    return {"message": "Token is valid", "data": current_user}

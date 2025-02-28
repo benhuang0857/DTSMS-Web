@@ -35,11 +35,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="row in filteredData" :key="row.id" class="hover:bg-gray-50 border-b">
-                            <td class="p-2">#{{ row.trackingId }}</td>
-                            <td class="p-2">{{ row.token }}</td>
-                            <td class="p-2">{{ row.fileName }}</td>
-                            <td class="p-2">{{ row.date }}</td>
+                        <tr v-for="row in paginatedData" :key="row.id" class="hover:bg-gray-50 border-b">
+                            <td class="p-2">#{{ row.tracking_num }}</td>
+                            <td class="p-2">{{ row.token || 'N/A' }}</td>
+                            <td class="p-2">{{ row.filename }}</td>
+                            <td class="p-2">{{ formatDate(row.created_time) }}</td>
                             <td class="p-2">
                                 <span :class="statusClass(row.status)" class="px-2 py-1 rounded-md text-white">
                                     {{ row.status }}
@@ -75,8 +75,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from "vue";
+import { defineComponent, ref, computed, onMounted } from "vue";
 import LeftMenu from '@/components/LeftMenu.vue';
+import axios from 'axios';
 
 export default defineComponent({
     name: "TablePage",
@@ -95,25 +96,45 @@ export default defineComponent({
         const entries = ref(10);
         const search = ref("");
         const currentPage = ref(1);
+        const data = ref<any[]>([]); // 儲存從 API 獲取的數據
 
-        const data = ref([
-            {
-                id: 1,
-                trackingId: 20462,
-                fileName: "Vendor01",
-                token: "TWTWT1089TWT1089",
-                date: "13/05/2022",
-                status: "Completed",
+        // 從後端獲取數據
+        const fetchData = async () => {
+            try {
+                const response = await axios.get('http://172.31.176.1:8000/file_uploads', {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token') || ''}`
+                    }
+                });
+                data.value = response.data;
+            } catch (error) {
+                console.error('Failed to fetch file uploads:', error);
             }
-        ]);
+        };
 
-        const totalPages = computed(() => Math.ceil(data.value.length / entries.value));
+        // 在組件掛載時獲取數據
+        onMounted(() => {
+            fetchData();
+        });
+
+        // 計算總頁數
+        const totalPages = computed(() => Math.ceil(filteredData.value.length / entries.value));
+
+        // 過濾數據（基於搜索）
         const filteredData = computed(() =>
             data.value.filter((item) =>
-                item.fileName.toLowerCase().includes(search.value.toLowerCase())
+                item.filename.toLowerCase().includes(search.value.toLowerCase())
             )
         );
 
+        // 分頁數據
+        const paginatedData = computed(() => {
+            const start = (currentPage.value - 1) * entries.value;
+            const end = start + entries.value;
+            return filteredData.value.slice(start, end);
+        });
+
+        // 分頁控制
         const goToPage = (page: number) => (currentPage.value = page);
         const prevPage = () => {
             if (currentPage.value > 1) currentPage.value--;
@@ -122,6 +143,7 @@ export default defineComponent({
             if (currentPage.value < totalPages.value) currentPage.value++;
         };
 
+        // 狀態顏色
         const statusClass = (status: string) => {
             switch (status) {
                 case "Completed":
@@ -135,6 +157,12 @@ export default defineComponent({
             }
         };
 
+        // 格式化日期
+        const formatDate = (dateString: string) => {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        };
+
         return {
             menuItems,
             entries,
@@ -142,10 +170,12 @@ export default defineComponent({
             currentPage,
             totalPages,
             filteredData,
+            paginatedData,
             goToPage,
             prevPage,
             nextPage,
             statusClass,
+            formatDate,
         };
     },
 });

@@ -43,16 +43,19 @@ async def create_file_upload(
     # 生成唯一的 tracking_num
     tracking_num = generate_tracking_num(db)
 
+    # 使用 secure_filename 生成安全的文件名
+    safe_filename = secure_filename(file.filename)
+    file_path = os.path.join(UPLOAD_DIR, safe_filename)
+
     # 儲存文件到本地
     file_content = await file.read()
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
     with open(file_path, "wb") as f:
         f.write(file_content)
 
     # 創建數據庫記錄
     db_file_upload = FileUploadModel(
         tracking_num=tracking_num,
-        filename=file.filename,
+        filename=safe_filename,  # 使用安全的文件名
         size=len(file_content),
         file_path=file_path,
         user_id=None,
