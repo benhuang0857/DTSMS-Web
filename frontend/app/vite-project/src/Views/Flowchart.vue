@@ -1,9 +1,7 @@
 <template>
     <div class="flex h-screen">
-        <!-- LeftMenu -->
         <LeftMenu :menuItems="menuItems" />
 
-        <!-- 功能區 -->
         <div class="function-panel w-48 bg-gray-100 p-4 border-r border-gray-200">
             <h3 class="text-lg font-semibold mb-4">動作</h3>
             <div
@@ -13,80 +11,37 @@
                 draggable="true"
                 @dragstart="onDragStart($event, action)"
             >
-                <svg width="150" height="40">
-                    <rect x="0" y="0" width="150" height="40" rx="5" fill="#e0f7fa" stroke="#0288d1" stroke-width="2" />
-                    <text x="50" y="25" text-anchor="middle" fill="#000" font-size="14">{{ action.label }}</text>
-                </svg>
+                <div class="drawflow-node-preview p-2 text-center" :style="{ backgroundColor: '#e0f7fa', border: '2px solid #0288d1', borderRadius: '5px'}">
+                    {{ action.label }}
+                </div>
             </div>
         </div>
 
-        <!-- 流程圖區域 -->
         <main class="flex-1 flex p-6">
-            <div class="dashboard-container flex-1 p-10px" @drop="onDrop($event)" @dragover.prevent>
-                <div class="flowchart">
-                    <svg ref="svg" :width="width" :height="height">
-                        <!-- 連線 -->
-                        <line
-                            v-for="link in links"
-                            :key="link.id"
-                            :x1="nodes.find((n) => n.id === link.source)?.x || 0"
-                            :y1="nodes.find((n) => n.id === link.source)?.y || 0"
-                            :x2="nodes.find((n) => n.id === link.target)?.x || 0"
-                            :y2="nodes.find((n) => n.id === link.target)?.y || 0"
-                            stroke="#000"
-                            stroke-width="2"
-                        />
-                        <!-- 節點（動作長方形） -->
-                        <g v-for="node in nodes" :key="node.id" @click="onNodeClick(node)">
-                            <rect
-                                :x="node.x - 50"
-                                :y="node.y - 20"
-                                width="150"
-                                height="40"
-                                rx="5"
-                                fill="#e0f7fa"
-                                stroke="#0288d1"
-                                stroke-width="2"
-                                class="cursor-move"
-                                @dragstart="onNodeDragStart($event, node)"
-                                draggable="true"
-                            />
-                            <text
-                                :x="node.x"
-                                :y="node.y + 5"
-                                text-anchor="middle"
-                                fill="#000"
-                                font-size="14"
-                            >{{ node.label }}</text>
-                        </g>
-                    </svg>
+            <div id="drawflow" class="dashboard-container flex-1 p-10px border border-gray-300" @drop="onDrop($event)" @dragover.prevent>
                 </div>
-            </div>
         </main>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from "vue";
-import LeftMenu from '@/components/LeftMenu.vue';
-import * as d3 from "d3";
+import { defineComponent, ref, onMounted, nextTick } from "vue";
+import LeftMenu from '@/components/LeftMenu.vue'; // 假設路徑正確
+import Drawflow from 'drawflow';
+import 'drawflow/dist/drawflow.min.css'; // 引入 Drawflow 樣式
+// 如果您想自定義 Drawflow 節點樣式，可以在這裡或全局 CSS 中添加
 
-// 定義節點和連結的型別
-interface Node {
+// 注意：您原有的 actions 中 id:3 有重複，我將其修改為 3 和 4
+interface Action {
     id: number;
-    x: number;
-    y: number;
     label: string;
-}
-
-interface Link {
-    id: number;
-    source: number;
-    target: number;
+    nodeName?: string; // 用於 Drawflow 節點類型
+    inputs?: number;
+    outputs?: number;
 }
 
 export default defineComponent({
-    name: "FlowchartPage",
+    name: "FlowchartPageWithDrawflow",
     components: {
         LeftMenu,
     },
@@ -99,186 +54,147 @@ export default defineComponent({
             { label: 'Setting', link: '/setting', icon: 'fas fa-cog', active: false },
         ]);
 
-        const svg = ref<SVGSVGElement | null>(null); // SVG 容器的引用
-        const width = 800;
-        const height = 600;
+        const editor = ref<Drawflow | null>(null);
 
         // 功能區的動作
-        const actions = ref([
-            { id: 1, label: '開啟檔案' },
-            { id: 2, label: '關閉檔案' },
-            { id: 3, label: '掃描檔案' },
-            { id: 3, label: 'Sandbox分析' },
+        const actions = ref<Action[]>([
+            { id: 1, label: '開啟檔案', nodeName: 'openFile', inputs: 0, outputs: 1 },
+            { id: 2, label: '關閉檔案', nodeName: 'closeFile', inputs: 1, outputs: 0 },
+            { id: 3, label: '掃描檔案', nodeName: 'scanFile', inputs: 1, outputs: 1 },
+            { id: 4, label: 'Sandbox分析', nodeName: 'sandboxAnalysis', inputs: 1, outputs: 1 }, // 修正了重複的 ID
         ]);
 
-        // 流程圖節點和連結
-        const nodes = ref<Node[]>([]);
-        const links = ref<Link[]>([]);
-        let nextNodeId = 1;
-        let nextLinkId = 1;
-
-        // 拖曳動作到流程圖區域
-        const onDragStart = (event: DragEvent, action: { id: number; label: string }) => {
-            event.dataTransfer?.setData('action', JSON.stringify(action));
+        const onDragStart = (event: DragEvent, action: Action) => {
+            if (event.dataTransfer) {
+                // 傳遞 action 的相關資訊，特別是 nodeName，以便在 onDrop 中使用
+                event.dataTransfer.setData('application/drawflow', JSON.stringify(action));
+            }
         };
 
         const onDrop = (event: DragEvent) => {
             event.preventDefault();
-            const actionData = event.dataTransfer?.getData('action');
-            if (actionData) {
-                const action = JSON.parse(actionData);
-                const rect = (event.target as HTMLElement).getBoundingClientRect();
-                const x = event.clientX - rect.left;
-                const y = event.clientY - rect.top;
-                nodes.value.push({
-                    id: nextNodeId++,
-                    x,
-                    y,
-                    label: action.label,
-                });
-            }
-        };
+            if (editor.value && event.dataTransfer) {
+                const actionString = event.dataTransfer.getData('application/drawflow');
+                if (!actionString) return;
 
-        // 節點拖曳
-        const onNodeDragStart = (event: DragEvent, node: Node) => {
-            event.dataTransfer?.setData('nodeId', node.id.toString());
-        };
+                const action: Action = JSON.parse(actionString);
 
-        // D3 拖曳行為
-        const initDrag = () => {
-            if (!svg.value) return;
+                // 計算放置位置
+                // Drawflow addNode 的 x, y 是相對於 Drawflow 容器的
+                const container = (event.target as HTMLElement).closest('#drawflow');
+                if (!container) return;
 
-            const svgElement = d3.select(svg.value);
+                const rect = container.getBoundingClientRect();
+                const x = event.clientX - rect.left - (event.offsetX || 0); //offsetX可能不准, drawflow內部會再處理
+                const y = event.clientY - rect.top - (event.offsetY || 0);  //offsetY可能不准
 
-            const drag = d3
-                .drag<SVGRectElement, Node>()
-                .on("start", (event, d) => {
-                    d3.select(event.sourceEvent.target).attr("stroke", "red");
-                })
-                .on("drag", (event, d) => {
-                    d.x = event.x;
-                    d.y = event.y;
-                    updateFlowchart();
-                })
-                .on("end", (event) => {
-                    d3.select(event.sourceEvent.target).attr("stroke", "#0288d1");
-                });
+                // 定義節點的 HTML 內容
+                // 您可以創建更複雜的 HTML 結構，甚至使用 Vue 組件來渲染節點內容
+                const nodeHtml = `
+                    <div style="padding: 10px; background-color: #e0f7fa; border: 2px solid #0288d1; border-radius: 5px; text-align: center;">
+                        ${action.label}
+                    </div>
+                `;
 
-            svgElement.selectAll("rect").call(drag);
-        };
-
-        // 更新流程圖
-        const updateFlowchart = () => {
-            if (!svg.value) return;
-
-            const svgElement = d3.select(svg.value);
-
-            // 更新連線
-            svgElement
-                .selectAll("line")
-                .data(links.value)
-                .join("line")
-                .attr("x1", (d) => nodes.value.find((n) => n.id === d.source)?.x || 0)
-                .attr("y1", (d) => nodes.value.find((n) => n.id === d.source)?.y || 0)
-                .attr("x2", (d) => nodes.value.find((n) => n.id === d.target)?.x || 0)
-                .attr("y2", (d) => nodes.value.find((n) => n.id === d.target)?.y || 0)
-                .attr("stroke", "#000")
-                .attr("stroke-width", "2");
-
-            // 更新節點
-            svgElement
-                .selectAll("rect")
-                .data(nodes.value)
-                .join("rect")
-                .attr("x", (d) => d.x - 50)
-                .attr("y", (d) => d.y - 20)
-                .attr("width", 150)
-                .attr("height", 40)
-                .attr("rx", 5)
-                .attr("fill", "#e0f7fa")
-                .attr("stroke", "#0288d1")
-                .attr("stroke-width", "2")
-                .call(initDrag);
-
-            svgElement
-                .selectAll("text")
-                .data(nodes.value)
-                .join("text")
-                .attr("x", (d) => d.x)
-                .attr("y", (d) => d.y + 5)
-                .attr("text-anchor", "middle")
-                .attr("fill", "#000")
-                .attr("font-size", "14")
-                .text((d) => d.label);
-        };
-
-        // 點擊節點以創建或移除連線
-        let selectedNode: Node | null = null;
-
-        const onNodeClick = (node: Node) => {
-            if (!selectedNode) {
-                selectedNode = node;
-                d3.select(`rect[x="${node.x - 50}"][y="${node.y - 20}"]`).attr("stroke", "red");
-            } else if (selectedNode === node) {
-                // 取消選擇
-                selectedNode = null;
-                d3.select(`rect[x="${node.x - 50}"][y="${node.y - 20}"]`).attr("stroke", "#0288d1");
-            } else {
-                // 檢查是否已存在連線
-                const existingLink = links.value.find(
-                    (link) =>
-                        (link.source === selectedNode.id && link.target === node.id) ||
-                        (link.source === node.id && link.target === selectedNode.id)
+                editor.value.addNode(
+                    action.nodeName || action.label.toLowerCase().replace(/\s/g, ''), // 節點名稱/類型
+                    action.inputs !== undefined ? action.inputs : 1,         // 輸入點數量
+                    action.outputs !== undefined ? action.outputs : 1,       // 輸出點數量
+                    x,                                            // X 座標
+                    y,                                            // Y 座標
+                    action.nodeName || action.label.replace(/\s/g, ''), // class name for the node
+                    { label: action.label, id: action.id },      // 節點的內部數據
+                    nodeHtml,                                     // 節點的 HTML 內容
+                    false                                         // 'vue' 模式 (如果使用 Vue 渲染節點則為 true)
                 );
-
-                if (existingLink) {
-                    // 移除連線
-                    links.value = links.value.filter((link) => link !== existingLink);
-                } else {
-                    // 添加新連線
-                    links.value.push({
-                        id: nextLinkId++,
-                        source: selectedNode.id,
-                        target: node.id,
-                    });
-                }
-
-                // 重置選擇
-                d3.select(`rect[x="${selectedNode.x - 50}"][y="${selectedNode.y - 20}"]`).attr("stroke", "#0288d1");
-                selectedNode = null;
-                updateFlowchart();
             }
         };
 
-        // 初始化
         onMounted(() => {
-            updateFlowchart();
+            const container = document.getElementById('drawflow');
+            if (container) {
+                editor.value = new Drawflow(container, { registerNode: undefined }, {
+                    // Drawflow options (if any)
+                    // 例如: reroute: true, reroute_fix_curvature: true
+                });
+                editor.value.start();
+
+                // (可選) 註冊自定義節點類型，如果需要更複雜的節點渲染或行為
+                // actions.value.forEach(action => {
+                //     if (action.nodeName && editor.value) {
+                //         // 這裡的 HTML 也可以是一個 Vue 組件的實例
+                //         const nodeHtmlTemplate = `
+                //             <div class="custom-node" style="background-color: #e0f7fa; border: 1px solid #0288d1; padding: 15px; border-radius: 5px;">
+                //                 <div><strong>${action.label}</strong></div>
+                //             </div>
+                //         `;
+                //         editor.value.registerNode(action.nodeName, nodeHtmlTemplate, {}, {}); // 後兩個參數是 props 和 options
+                //     }
+                // });
+
+                // (可選) 監聽 Drawflow 事件
+                editor.value.on('nodeCreated', (id: number) => {
+                    console.log("Node Created: " + id);
+                    // 您可以在此處獲取 editor.value.getNodeFromId(id) 來訪問節點數據
+                });
+
+                editor.value.on('connectionCreated', (connection: any) => {
+                    console.log("Connection Created", connection);
+                });
+
+                editor.value.on('nodeRemoved', (id: number) => {
+                    console.log("Node Removed: " + id);
+                });
+
+                // 可以使用 editor.value.import(data) 來載入現有流程圖
+                // editor.value.import({ "drawflow": { "Home": { "data": { /* ... some data ... */ } } } });
+            }
         });
+
+        // 如果需要導出數據
+        // const exportData = () => {
+        //     if (editor.value) {
+        //         const data = editor.value.export();
+        //         console.log(JSON.stringify(data));
+        //         // 在此處處理導出的數據，例如保存到後端
+        //     }
+        // };
 
         return {
             menuItems,
             actions,
-            svg,
-            width,
-            height,
-            nodes,
-            links,
             onDragStart,
-            onDrop,
-            onNodeClick,
+            onDrop, // onDrop 現在是 Drawflow 容器的事件
+            // exportData, // 如果需要導出功能，可以解除註釋
         };
     },
 });
 </script>
 
 <style scoped>
-.flowchart {
+/* 確保 Drawflow 容器有明確的尺寸 */
+#drawflow {
+    width: 100%;
+    height: calc(100vh - 100px); /* 根據您的佈局調整 */
+    background: #f7f7f7; /* 給一個背景色，方便看清邊界 */
     border: 1px solid #ccc;
 }
+
 .function-panel {
-    width: 200px;
+    width: 200px; /* 與模板中一致 */
 }
+
 .action-item {
-    user-select: none;
+    user-select: none; /* 防止拖曳時選中文本 */
 }
+
+.drawflow-node-preview { /* 預覽項目的樣式，可以自定義 */
+    font-size: 14px;
+}
+
+/* 您可以添加更多自定義樣式來美化 Drawflow 節點和連接線 */
+/* 例如： */
+/* ::v-deep .drawflow-node { ... } */
+/* ::v-deep .drawflow-connection .main-path { stroke: blue; stroke-width: 3; } */
+
 </style>
