@@ -7,24 +7,25 @@ from database import get_db
 from routers.auth import get_current_user
 
 router = APIRouter()
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
+    """Hash a password using bcrypt."""
     return pwd_context.hash(password)
 
-# Create User
+# 創建新用戶
 @router.post("/", response_model=User)
 def create_user(user: UserCreate, 
                 db: Session = Depends(get_db),
                 current_user: UserModel = Depends(get_current_user)):
-    if db.query(UserModel).filter(UserModel.username == user.username).first():
-        raise HTTPException(status_code=400, detail="Username already registered")
+    """新增用戶"""
+    if db.query(UserModel).filter(UserModel.account == user.account).first():
+        raise HTTPException(status_code=400, detail="用戶名已被註冊")
     if db.query(UserModel).filter(UserModel.email == user.email.lower()).first():
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail="電子郵件已被註冊")
 
     db_user = UserModel(
-        username=user.username,
+        account=user.account,
         email=user.email.lower(),
         avatar=user.avatar,
         real_name=user.real_name,
@@ -38,54 +39,54 @@ def create_user(user: UserCreate,
     db.refresh(db_user)
     return db_user
 
-# Get User List (with Pagination)
+# 獲取用戶列表（支持分頁）
 @router.get("/", response_model=list[User])
 def get_users(skip: int = 0, limit: int = 10, 
               db: Session = Depends(get_db), 
               current_user: UserModel = Depends(get_current_user)):
+    """查詢所有用戶（分頁）"""
     return db.query(UserModel).offset(skip).limit(limit).all()
 
-# Get Single User
+# 獲取單個用戶
 @router.get("/{user_id}", response_model=User)
 def get_user(user_id: int, 
-            db: Session = Depends(get_db),
-            current_user: UserModel = Depends(get_current_user)):
+             db: Session = Depends(get_db),
+             current_user: UserModel = Depends(get_current_user)):
+    """根據 ID 獲取用戶"""
     db_user = db.query(UserModel).filter(UserModel.id == user_id).first()
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+    if not db_user:
+        raise HTTPException(status_code=404, detail="用戶未找到")
     return db_user
 
-# Update User
+# 更新用戶
 @router.put("/{user_id}", response_model=User)
 def update_user(user_id: int, user: UserUpdate, 
                 db: Session = Depends(get_db),
                 current_user: UserModel = Depends(get_current_user)):
+    """更新用戶資料"""
     db_user = db.query(UserModel).filter(UserModel.id == user_id).first()
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+    if not db_user:
+        raise HTTPException(status_code=404, detail="用戶未找到")
     
-    if user.username is not None:
-        db_user.username = user.username
-    if user.email is not None:
-        db_user.email = user.email.lower()
-    if user.real_name is not None:
-        db_user.real_name = user.real_name
-    if user.password:
-        db_user.password = hash_password(user.password)
+    for key, value in user.dict(exclude_unset=True).items():
+        if key == "password" and value:
+            value = hash_password(value)
+        setattr(db_user, key, value)
 
     db.commit()
     db.refresh(db_user)
     return db_user
 
-# Delete User
+# 刪除用戶
 @router.delete("/{user_id}", status_code=204)
 def delete_user(user_id: int, 
                 db: Session = Depends(get_db),
                 current_user: UserModel = Depends(get_current_user)):
+    """刪除用戶"""
     db_user = db.query(UserModel).filter(UserModel.id == user_id).first()
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+    if not db_user:
+        raise HTTPException(status_code=404, detail="用戶未找到")
     
     db.delete(db_user)
     db.commit()
-    return {"message": "User deleted successfully"}
+    return {"message": "用戶已成功刪除"}

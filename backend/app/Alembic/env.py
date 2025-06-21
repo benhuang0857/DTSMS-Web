@@ -11,7 +11,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # 導入你的模型並設置 target_metadata
-from models import Base  # 假設 models.py 在 /app 目錄下
+from models.base import Base
 target_metadata = Base.metadata  # 指向你的模型的 MetaData
 
 def run_migrations_offline() -> None:

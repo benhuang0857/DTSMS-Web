@@ -11,6 +11,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.sql import func
 from sqlalchemy.dialects import postgresql
+from passlib.context import CryptContext
 
 
 # revision identifiers, used by Alembic.
@@ -18,6 +19,8 @@ revision: str = '73ca160269b8'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def upgrade() -> None:
@@ -77,6 +80,32 @@ def upgrade() -> None:
         sa.Column('created_time', sa.TIMESTAMP, server_default=func.now(), nullable=False, comment="創建時間"),
         sa.Column('updated_time', sa.TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新時間"),
     )
+    hashed_password = pwd_context.hash("12345678")
+
+    conn.execute(
+        sa.text(
+            """
+            INSERT INTO users 
+            (role_id, account, email, password, status, created_time, updated_time)
+            VALUES 
+            (
+                (SELECT id FROM roles WHERE name = 'admin'), 
+                :account, 
+                :email, 
+                :password, 
+                'active', 
+                NOW(), 
+                NOW()
+            )
+            """
+        ),
+        {
+            "account": "admin",
+            "email": "admin@example.com",
+            "password": hashed_password  # 使用雜湊後的密碼
+        }
+    )
+
 
 def downgrade() -> None:
     """Downgrade schema."""

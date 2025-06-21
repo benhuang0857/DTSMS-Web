@@ -1,19 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from models import Role as RoleModel  # Assuming the Role model matches the schema
-from schemas import RoleCreate, RoleUpdate, Role  # Ensure these schemas align with the schema
+from models import Role as RoleModel  # 確保 Role 模型與數據庫一致
+from schemas import RoleCreate, RoleUpdate, Role  # Schemas 用於請求/響應驗證
 from database import get_db
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/roles",
+    tags=["roles"]
+)
 
-# Create a new role
+# 創建角色
 @router.post("/", response_model=Role)
 def create_role(role: RoleCreate, db: Session = Depends(get_db)):
-    """Add a new role"""
-    # Check if title is unique
-    existing_role = db.query(RoleModel).filter(RoleModel.title == role.title).first()
+    """新增角色"""
+    existing_role = db.query(RoleModel).filter(RoleModel.name == role.name).first()
     if existing_role:
-        raise HTTPException(status_code=400, detail="Role title already exists")
+        raise HTTPException(status_code=400, detail="角色名稱已存在")
 
     db_role = RoleModel(**role.dict())
     db.add(db_role)
@@ -21,30 +23,29 @@ def create_role(role: RoleCreate, db: Session = Depends(get_db)):
     db.refresh(db_role)
     return db_role
 
-# Get all roles (with pagination)
+# 獲取所有角色（帶分頁功能）
 @router.get("/", response_model=list[Role])
 def get_roles(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    """Retrieve all roles (paginated)"""
+    """查詢所有角色（分頁）"""
     return db.query(RoleModel).offset(skip).limit(limit).all()
 
-# Get a specific role by ID
+# 根據 ID 獲取特定角色
 @router.get("/{role_id}", response_model=Role)
 def get_role(role_id: int, db: Session = Depends(get_db)):
-    """Retrieve a specific role by ID"""
+    """根據 ID 獲取角色"""
     db_role = db.query(RoleModel).filter(RoleModel.id == role_id).first()
     if not db_role:
-        raise HTTPException(status_code=404, detail="Role not found")
+        raise HTTPException(status_code=404, detail="角色未找到")
     return db_role
 
-# Update a specific role by ID
+# 根據 ID 更新角色
 @router.put("/{role_id}", response_model=Role)
 def update_role(role_id: int, role: RoleUpdate, db: Session = Depends(get_db)):
-    """Update a specific role by ID"""
+    """根據 ID 更新角色"""
     db_role = db.query(RoleModel).filter(RoleModel.id == role_id).first()
     if not db_role:
-        raise HTTPException(status_code=404, detail="Role not found")
+        raise HTTPException(status_code=404, detail="角色未找到")
 
-    # Update only provided fields
     for key, value in role.dict(exclude_unset=True).items():
         setattr(db_role, key, value)
 
@@ -52,14 +53,14 @@ def update_role(role_id: int, role: RoleUpdate, db: Session = Depends(get_db)):
     db.refresh(db_role)
     return db_role
 
-# Delete a specific role by ID
+# 根據 ID 刪除角色
 @router.delete("/{role_id}")
 def delete_role(role_id: int, db: Session = Depends(get_db)):
-    """Delete a specific role by ID"""
+    """根據 ID 刪除角色"""
     db_role = db.query(RoleModel).filter(RoleModel.id == role_id).first()
     if not db_role:
-        raise HTTPException(status_code=404, detail="Role not found")
+        raise HTTPException(status_code=404, detail="角色未找到")
 
     db.delete(db_role)
     db.commit()
-    return {"message": "Role deleted successfully"}
+    return {"message": "角色已成功刪除"}
