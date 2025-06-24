@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, users, roles
+from routers import auth, users, roles, web_settings, libraries
 
 app = FastAPI()
 
@@ -13,9 +13,11 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"]
 )
 
-app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(users.router, prefix="/users", tags=["users"])
-app.include_router(roles.router, prefix="/roles", tags=["roles"])
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(users.router, prefix="/api/users", tags=["users"])
+app.include_router(roles.router, prefix="/api/roles", tags=["roles"])
+app.include_router(web_settings.router, prefix="/api/web-settings", tags=["web-settings"])
+app.include_router(libraries.router, prefix="/api/libraries", tags=["libraries"])
 
 @app.get("/")
 def read_root():

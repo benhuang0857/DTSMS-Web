@@ -4,10 +4,7 @@ from models import Role as RoleModel  # 確保 Role 模型與數據庫一致
 from schemas import RoleCreate, RoleUpdate, Role  # Schemas 用於請求/響應驗證
 from database import get_db
 
-router = APIRouter(
-    prefix="/roles",
-    tags=["roles"]
-)
+router = APIRouter()
 
 # 創建角色
 @router.post("/", response_model=Role)
