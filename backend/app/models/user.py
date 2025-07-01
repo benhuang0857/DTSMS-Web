@@ -1,11 +1,11 @@
-from sqlalchemy import Column, Integer, String, TIMESTAMP, ForeignKey
+from sqlalchemy import Column, BigInteger, Integer, String, TIMESTAMP, ForeignKey
 from sqlalchemy.sql import func
 from models.base import Base
 
 class User(Base):
     __tablename__ = 'users'
 
-    id = Column(Integer, primary_key=True, index=True, comment="用戶ID")
+    id = Column(BigInteger, primary_key=True, index=True, comment="用戶ID")
     account = Column(String(50), unique=True, index=True, comment="帳戶名")
     email = Column(String(255), unique=True, index=True, comment="用戶電子郵件")
     avatar = Column(String(255), nullable=True, comment="用戶頭像")

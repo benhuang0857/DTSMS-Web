@@ -25,7 +25,6 @@ def upgrade() -> None:
     op.create_table(
         'recipes',
         sa.Column('id', sa.BigInteger, primary_key=True, comment="站點自動化腳本ID"),
-        sa.Column('user_id', sa.Integer, sa.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, comment="用戶ID"),
         sa.Column('library_id', sa.Integer, sa.ForeignKey('libraries.id', ondelete='SET NULL'), nullable=True, comment="Library ID"),
         sa.Column('name', sa.String(255), nullable=False, comment="腳本名稱"),
         sa.Column('description', sa.Text, nullable=True, comment="腳本描述"),
@@ -43,7 +42,7 @@ def upgrade() -> None:
         'recipe_steps',
         sa.Column('id', sa.BigInteger, primary_key=True, comment="站點腳本步驟ID"),
         sa.Column('recipe_id', sa.BigInteger, sa.ForeignKey('recipes.id', ondelete='CASCADE'), nullable=False, comment="腳本ID"),
-        sa.Column('step_number', sa.Integer, nullable=False, comment="步驟序號"),
+        sa.Column('number', sa.Integer, nullable=False, comment="步驟序號"),
         sa.Column('action', sa.String(50), nullable=False, comment="執行動作"),
         sa.Column('parameters', sa.JSON, nullable=True, comment="參數"),
         sa.Column(

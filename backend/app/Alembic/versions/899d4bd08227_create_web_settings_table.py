@@ -24,7 +24,7 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
         'web_settings',
-        sa.Column('id', sa.Integer(), primary_key=True, autoincrement=True),
+        sa.Column('id', sa.BigInteger(), primary_key=True, autoincrement=True),
         sa.Column('key', sa.String(length=255), nullable=False, unique=True),
         sa.Column('name', sa.String(length=255), nullable=False, comment="設定名稱"),
         sa.Column('description', sa.String(length=255), nullable=True, comment="設定描述"),

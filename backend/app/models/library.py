@@ -1,11 +1,11 @@
-from sqlalchemy import Column, Integer, String, TIMESTAMP
+from sqlalchemy import Column, BigInteger, Integer, String, TIMESTAMP
 from sqlalchemy.sql import func
 from models.base import Base
 
 class Library(Base):
     __tablename__ = 'libraries'
 
-    id = Column(Integer, primary_key=True, index=True, comment="Library ID")
+    id = Column(BigInteger, primary_key=True, index=True, comment="Library ID")
     name = Column(String(100), nullable=False, unique=True, comment="Library Name")
     protocal = Column(String(50), nullable=True, comment="Protocol Type")
     baudrate = Column(Integer, nullable=True, comment="Baudrate")

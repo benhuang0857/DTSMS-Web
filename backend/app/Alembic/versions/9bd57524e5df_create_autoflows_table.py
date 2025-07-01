@@ -25,7 +25,6 @@ def upgrade() -> None:
     op.create_table(
         'autoflows',
         sa.Column('id', sa.BigInteger, primary_key=True, comment="掃描自動化流程ID"),
-        sa.Column('user_id', sa.Integer, sa.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, comment="用戶ID"),
         sa.Column('recipe_id', sa.BigInteger, sa.ForeignKey('recipes.id', ondelete='SET NULL'), nullable=True, comment="腳本ID"),
         sa.Column('name', sa.String(255), nullable=False, comment="流程名稱"),
         sa.Column('description', sa.Text, nullable=True, comment="流程描述"),

@@ -27,7 +27,7 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
     'roles',
-        sa.Column('id', sa.Integer, primary_key=True),
+        sa.Column('id', sa.BigInteger, primary_key=True),
         sa.Column('name', sa.String(50), unique=True, index=True, comment="角色名稱"),
         sa.Column('description', sa.String(255), nullable=True, comment="角色描述"),
         sa.Column('created_time', sa.TIMESTAMP, server_default=func.now(), nullable=False, comment="創建時間"),
@@ -53,10 +53,10 @@ def upgrade() -> None:
 
     op.create_table(
     'users',
-        sa.Column('id', sa.Integer, primary_key=True),
+        sa.Column('id', sa.BigInteger, primary_key=True),
         sa.Column(
             'role_id', 
-            sa.Integer, 
+            sa.BigInteger, 
             sa.ForeignKey('roles.id', ondelete='SET NULL'), 
             nullable=False, 
             server_default='2',

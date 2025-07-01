@@ -1,11 +1,11 @@
-from sqlalchemy import Column, Integer, String, Text, TIMESTAMP
+from sqlalchemy import Column, BigInteger, Integer, String, Text, TIMESTAMP
 from sqlalchemy.sql import func
 from models.base import Base
 
 class WebSetting(Base):
     __tablename__ = 'web_settings'
 
-    id = Column(Integer, primary_key=True, index=True, comment="網站設定ID")
+    id = Column(BigInteger, primary_key=True, index=True, comment="網站設定ID")
     key = Column(String(255), nullable=False, unique=True, comment="網站設定鍵")
     name = Column(String(255), nullable=False, comment="網站設定名稱")
     description = Column(String(255), nullable=True, comment="網站設定描述")
