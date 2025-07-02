@@ -1,6 +1,7 @@
-from sqlalchemy import Column, BigInteger, Integer, String, TIMESTAMP
+from sqlalchemy import Column, BigInteger, Integer, String, TIMESTAMP, Enum
 from sqlalchemy.sql import func
 from models.base import Base
+from enums import BasicStatus
 
 class Library(Base):
     __tablename__ = 'libraries'
@@ -16,6 +17,6 @@ class Library(Base):
     port = Column(Integer, nullable=True, comment="Port Number")
     certfile = Column(String(255), nullable=True, comment="Certificate File Path")
     description = Column(String(255), nullable=True, comment="Library Description")
-    status = Column(String(255), nullable=False, comment="Library Status")
+    status = Column(Enum(BasicStatus, name="basic_status"), nullable=False, comment="狀態")
     created_time = Column(TIMESTAMP, server_default=func.now(), nullable=False, comment="Creation Time")
     updated_time = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False, comment="Update Time")

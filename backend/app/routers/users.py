@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from passlib.context import CryptContext
 from models import User as UserModel
 from schemas import UserCreate, User, UserUpdate
@@ -44,8 +44,8 @@ def create_user(user: UserCreate,
 def get_users(skip: int = 0, limit: int = 10, 
               db: Session = Depends(get_db), 
               current_user: UserModel = Depends(get_current_user)):
-    """查詢所有用戶（分頁）"""
-    return db.query(UserModel).offset(skip).limit(limit).all()
+    users = db.query(UserModel).options(joinedload(UserModel.role)).offset(skip).limit(limit).all()
+    return users
 
 # 獲取單個用戶
 @router.get("/{user_id}", response_model=User)

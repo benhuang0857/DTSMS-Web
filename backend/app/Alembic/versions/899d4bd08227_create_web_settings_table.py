@@ -10,6 +10,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.dialects import postgresql
 
 
@@ -19,9 +20,12 @@ down_revision: Union[str, Sequence[str], None] = '699ee49876d9'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
+pg_enum_web_setting_status = postgresql.ENUM('on', 'off', name='web_setting_status')
 
 def upgrade() -> None:
     """Upgrade schema."""
+    pg_enum_web_setting_status.create(op.get_bind(), checkfirst=True)
+
     op.create_table(
         'web_settings',
         sa.Column('id', sa.BigInteger(), primary_key=True, autoincrement=True),
@@ -31,10 +35,13 @@ def upgrade() -> None:
         sa.Column('value', sa.Text(), nullable=False),
         sa.Column(
             'status',
-            sa.Enum('on', 'off', name='web_setting_status'),
-            server_default="on",
-            nullable=False,
-            comment="狀態"
+            sa.Enum(
+                'on', 'off', 
+                name='web_setting_status'
+            ).with_variant(
+                postgresql.ENUM('on', 'off', name='web_setting_status', create_type=False),
+                'postgresql'
+            )
         ),
         sa.Column('created_time', sa.DateTime(), server_default=sa.func.now(), nullable=False),
         sa.Column('updated_time', sa.DateTime(), server_default=sa.func.now(), onupdate=sa.func.now(), nullable=False),
@@ -66,5 +73,4 @@ def downgrade() -> None:
     """Downgrade schema."""
     op.drop_table('web_settings')
 
-    user_status = postgresql.ENUM('on', 'off', name='web_setting_status')
-    user_status.drop(op.get_bind(), checkfirst=True)
+    pg_enum_web_setting_status.drop(op.get_bind(), checkfirst=True)

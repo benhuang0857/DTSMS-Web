@@ -11,6 +11,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from models.base import Base
+from enums import TrackingStatus
 
 class FileTracking(Base):
     __tablename__ = 'file_trackings'
@@ -22,12 +23,7 @@ class FileTracking(Base):
     start_time = Column(TIMESTAMP, nullable=False, comment="開始時間")
     end_time = Column(TIMESTAMP, nullable=True, comment="結束時間")
     result = Column(String(255), nullable=True, comment="處理結果")
-    status = Column(
-        Enum('pending', 'in_progress', 'success', 'error', 'dangerous', name='tracking_status'),
-        server_default="pending",
-        nullable=False,
-        comment="處理狀態"
-    )
+    status = Column(Enum(TrackingStatus, name="tracking_status"), nullable=False, comment="狀態")
     note = Column(Text, nullable=True, comment="備註")
     created_time = Column(TIMESTAMP, server_default=func.now(), nullable=False, comment="建立時間")
     updated_time = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新時間")

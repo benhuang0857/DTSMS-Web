@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
+from enums import BasicStatus
 
 class LibraryBase(BaseModel):
     name: str
@@ -13,7 +14,7 @@ class LibraryBase(BaseModel):
     port: Optional[int] = None
     certfile: Optional[str] = None
     description: Optional[str] = None
-    status: str
+    status: BasicStatus
 
 class LibraryCreate(LibraryBase):
     pass
@@ -29,7 +30,7 @@ class LibraryUpdate(BaseModel):
     port: Optional[int] = None
     certfile: Optional[str] = None
     description: Optional[str] = None
-    status: Optional[str] = None
+    status: Optional[BasicStatus] = None
 
 class Library(LibraryBase):
     id: int

@@ -1,6 +1,8 @@
-from sqlalchemy import Column, BigInteger, Integer, String, TIMESTAMP, ForeignKey
+from sqlalchemy import Column, BigInteger, Integer, String, TIMESTAMP, ForeignKey, Enum
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from models.base import Base
+from enums import BasicStatus
 
 class User(Base):
     __tablename__ = 'users'
@@ -14,6 +16,8 @@ class User(Base):
     address = Column(String(255), nullable=True, comment="地址")
     mobile = Column(String(15), nullable=True, comment="手機號碼")
     password = Column(String(255), nullable=False, comment="密碼")
+    status = Column(Enum(BasicStatus, name="basic_status"), nullable=False, comment="狀態")
     role_id = Column(Integer, ForeignKey('roles.id', ondelete='SET NULL'), nullable=True, comment="角色ID")
     created_time = Column(TIMESTAMP, server_default=func.now(), nullable=False, comment="創建時間")
     updated_time = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新時間")
+    role = relationship("Role", backref="users")

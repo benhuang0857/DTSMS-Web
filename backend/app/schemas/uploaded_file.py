@@ -1,15 +1,17 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from enums import TrackingStatus
 
 # 基礎 Schema
 class UploadedFileBase(BaseModel):
     name: str
-    file_type: str
-    file_size: int
-    destination: Optional[str] = None
+    ticket_num: str
+    ftype: str
+    fsize: int
+    unzip_password: Optional[str] = None
     description: Optional[str] = None
-    status: Optional[str] = None
+    status: Optional[TrackingStatus] = None
 
 # 創建檔案
 class UploadedFileCreate(UploadedFileBase):
@@ -18,8 +20,9 @@ class UploadedFileCreate(UploadedFileBase):
 # 更新檔案
 class UploadedFileUpdate(UploadedFileBase):
     name: Optional[str] = None
-    file_type: Optional[str] = None
-    file_size: Optional[int] = None
+    ftype: Optional[str] = None
+    fsize: Optional[int] = None
+    status: Optional[TrackingStatus] = None
 
 # 響應檔案
 class UploadedFile(UploadedFileBase):

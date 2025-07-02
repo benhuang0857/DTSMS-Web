@@ -9,7 +9,7 @@ from routers.auth import get_current_user
 
 router = APIRouter()
 
-@router.post("/upload", response_model=UploadedFile)
+@router.post("/", response_model=UploadedFile)
 async def upload_file(
     uploaded_file: UploadFile = File(...), 
     db: Session = Depends(get_db),

@@ -37,7 +37,12 @@ def upgrade() -> None:
         sa.Column('description', sa.String(255), nullable=True, comment="Library Description"),
         sa.Column(
             'status',
-            sa.Enum('active', 'inactive', 'banned', name='library_status'),
+            sa.Enum(
+                'active', 'inactive', 'banned', name='basic_status'
+            ).with_variant(
+                postgresql.ENUM('active', 'inactive', 'banned', name='basic_status', create_type=False),
+                'postgresql'
+            ),
             server_default="active",
             nullable=False,
             comment="狀態"
@@ -54,7 +59,12 @@ def upgrade() -> None:
         sa.Column('description', sa.String(255), nullable=True, comment="Action Description"),
         sa.Column(
             'status',
-            sa.Enum('active', 'inactive', 'banned', name='library_status'),
+            sa.Enum(
+                'active', 'inactive', 'banned', name='basic_status'
+            ).with_variant(
+                postgresql.ENUM('active', 'inactive', 'banned', name='basic_status', create_type=False),
+                'postgresql'
+            ),
             server_default="active",
             nullable=False,
             comment="狀態"
@@ -68,6 +78,3 @@ def downgrade() -> None:
     """Downgrade schema."""
     op.drop_table('actions')
     op.drop_table('libraries')
-        
-    user_status = postgresql.ENUM('active', 'inactive', 'banned', name='library_status')
-    user_status.drop(op.get_bind(), checkfirst=True)
