@@ -6,7 +6,7 @@ from enums import TrackingStatus
 # 基礎 Schema
 class UploadedFileBase(BaseModel):
     name: str
-    ticket_num: str
+    ticket_id: int
     ftype: str
     fsize: int
     unzip_password: Optional[str] = None
@@ -15,7 +15,7 @@ class UploadedFileBase(BaseModel):
 
 # 創建檔案
 class UploadedFileCreate(UploadedFileBase):
-    pass
+    user_id: int
 
 # 更新檔案
 class UploadedFileUpdate(UploadedFileBase):
@@ -23,6 +23,8 @@ class UploadedFileUpdate(UploadedFileBase):
     ftype: Optional[str] = None
     fsize: Optional[int] = None
     status: Optional[TrackingStatus] = None
+    unzip_password: Optional[str] = None
+    description: Optional[str] = None
 
 # 響應檔案
 class UploadedFile(UploadedFileBase):

@@ -20,8 +20,8 @@ down_revision: Union[str, Sequence[str], None] = '9bd57524e5df'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
+# 建立 Postgres 專用 ENUM 物件
 pg_enum_tracking_status = postgresql.ENUM('pending', 'in_progress', 'success', 'error', 'dangerous', name='tracking_status')
-
 tracking_status_enum = sa.Enum(
     'pending', 'in_progress', 'success', 'error', 'dangerous',
     name='tracking_status'
@@ -34,29 +34,17 @@ tracking_status_enum = sa.Enum(
     'postgresql'
 )
 
-
 def upgrade() -> None:
     """Upgrade schema."""
     pg_enum_tracking_status.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
-        'uploaded_files',
-        sa.Column('id', sa.BigInteger, primary_key=True, comment="檔案上傳ID"),
-        sa.Column('user_id', sa.BigInteger, sa.ForeignKey('users.id', ondelete='SET NULL'), nullable=False, comment="用戶ID"),
-        sa.Column('ticket_num', sa.String(255), nullable=False, unique=True, comment="單號"),
-        sa.Column('name', sa.String(255), nullable=False, comment="檔案名稱"),
-        sa.Column('ftype', sa.String(50), nullable=False, comment="檔案類型"),
-        sa.Column('fsize', sa.BigInteger, nullable=False, comment="檔案大小（位元組）"),
-        sa.Column('unzip_password', sa.String(255), nullable=True, comment="解壓縮密碼"),
-        sa.Column('description', sa.String(255), nullable=True, comment="檔案描述"),
-        sa.Column('status', tracking_status_enum, server_default="pending", nullable=False, comment="處理狀態"),
-        sa.Column('created_time', sa.TIMESTAMP, server_default=func.now(), nullable=False),
-        sa.Column('updated_time', sa.TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False),
-    )
-    op.create_table(
         'tickets',
         sa.Column('id', sa.BigInteger, primary_key=True),
-        sa.Column('ticket_num', sa.String(255), nullable=False, unique=True, comment="單號"),
+        sa.Column('user_id', sa.BigInteger, sa.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, comment="用戶ID"),
+        sa.Column('code', sa.String(255), nullable=False, unique=True, comment="單號"),
+        sa.Column('exp_start_time', sa.TIMESTAMP, nullable=True, comment="期限起始時間"),
+        sa.Column('exp_end_time', sa.TIMESTAMP, nullable=True, comment="期限結束時間"),
         sa.Column(
             'status',
             sa.Enum(
@@ -69,6 +57,27 @@ def upgrade() -> None:
             nullable=False,
             comment="狀態"
         ),
+        sa.Column('created_time', sa.TIMESTAMP, server_default=func.now(), nullable=False),
+        sa.Column('updated_time', sa.TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False),
+    )
+    op.create_table(
+        'uploaded_files',
+        sa.Column('id', sa.BigInteger, primary_key=True, comment="檔案上傳ID"),
+        sa.Column('user_id', sa.BigInteger, sa.ForeignKey('users.id', ondelete='SET NULL'), nullable=False, comment="用戶ID"),
+        sa.Column(
+            'ticket_id', 
+            sa.BigInteger, 
+            sa.ForeignKey('tickets.id', ondelete='SET NULL'),
+            nullable=False, 
+            unique=True, 
+            comment="Ticket ID"
+        ),
+        sa.Column('name', sa.String(255), nullable=False, comment="檔案名稱"),
+        sa.Column('ftype', sa.String(50), nullable=False, comment="檔案類型"),
+        sa.Column('fsize', sa.BigInteger, nullable=False, comment="檔案大小（位元組）"),
+        sa.Column('unzip_password', sa.String(255), nullable=True, comment="解壓縮密碼"),
+        sa.Column('description', sa.String(255), nullable=True, comment="檔案描述"),
+        sa.Column('status', tracking_status_enum, server_default="pending", nullable=False, comment="處理狀態"),
         sa.Column('created_time', sa.TIMESTAMP, server_default=func.now(), nullable=False),
         sa.Column('updated_time', sa.TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False),
     )
@@ -100,8 +109,8 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     op.drop_table('file_trackings')
-    op.drop_table('tickets')
     op.drop_table('processing_steps')
     op.drop_table('uploaded_files')
+    op.drop_table('tickets')
 
     pg_enum_tracking_status.drop(op.get_bind(), checkfirst=True)

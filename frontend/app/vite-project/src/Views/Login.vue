@@ -31,7 +31,7 @@
 
         <!-- 右側：圖片 -->
         <div class="w-1/2 bg-cover bg-center"
-            style="background-image: url('https://mediaproxy.salon.com/width/1200/https://media2.salon.com/2021/02/romanesco-broccoli-0209212.jpg')">
+            style="background-image: url('../../public/images/dtsms-login-bg.jpg')">
         </div>
     </div>
 </template>
@@ -51,7 +51,7 @@ export default defineComponent({
 
         const handleLogin = async () => {
             try {
-                const response = await axios.post('http://172.31.176.1:8000/auth', {
+                const response = await axios.post('http://172.31.176.1:8000/api/auth', {
                     email: account.value,
                     password: password.value,
                 });
