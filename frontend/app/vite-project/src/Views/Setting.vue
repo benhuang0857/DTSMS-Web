@@ -123,7 +123,7 @@ export default defineComponent({
             { label: 'Setting', link: '/setting', icon: 'fas fa-cog', active: true },
         ]);
 
-        const tabs = ref(["My details", "Profile", "Password", "Team", "Plan", "Billing", "Email", "Notifications"]);
+        const tabs = ref(["My details", "Web Setting", "Library Setting"]);
         const activeTab = ref("My details");
 
         const authToken = ref(localStorage.getItem('token') || '');
@@ -146,14 +146,14 @@ export default defineComponent({
         // 從後端獲取當前用戶資料
         const fetchUserData = async () => {
             try {
-                const response = await axios.get('http://172.31.176.1:8000/auth/verify', {
+                const response = await axios.get('http://172.31.176.1:8000/api/auth/verify', {
                     headers: { Authorization: `Bearer ${authToken.value}` }
                 });
                 const userData = response.data.data; // 提取嵌套的 data 字段
                 userId.value = userData.id;
-                console.log(userId.value);
+                console.log(userData);
                 form.value = {
-                    username: userData.username,
+                    username: userData.account,
                     email: userData.email,
                     real_name: userData.real_name || "",
                     organization: userData.organization || "",

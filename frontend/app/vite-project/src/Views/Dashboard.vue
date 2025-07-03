@@ -70,7 +70,7 @@ export default defineComponent({
                 return;
             }
             try {
-                const response = await axios.get('http://172.31.176.1:8000/auth/verify', {
+                const response = await axios.get('http://172.31.176.1:8000/api/auth/verify', {
                     headers: { Authorization: `Bearer ${authToken.value}` }
                 });
                 if (response.status === 200) {
