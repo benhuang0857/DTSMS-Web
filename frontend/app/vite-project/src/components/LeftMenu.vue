@@ -1,5 +1,5 @@
 <template>
-    <aside class="bg-gray-800 text-gray-300 w-60 h-screen flex flex-col">
+    <aside class="bg-gray-800 text-gray-300 w-60 min-h-screen flex flex-col">
         <!-- 用戶信息 -->
         <div class="flex items-center px-4 py-6">
             <img src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fG1hbiUyMGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D"

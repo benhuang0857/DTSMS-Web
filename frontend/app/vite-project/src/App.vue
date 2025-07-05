@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="h-screen flex flex-col">
+  <div id="app" class="min-h-screen flex flex-col">
     <header
       v-if="showTopBar"
       class="bg-gray-800 text-white py-4 px-6 flex justify-between items-center"

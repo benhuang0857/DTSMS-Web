@@ -5,14 +5,16 @@ Revises: 9bd57524e5df
 Create Date: 2025-06-21 19:00:49.170663
 
 """
-from typing import Sequence, Union
-
-from alembic import op
+import os
 import sqlalchemy as sa
+from typing import Sequence, Union
+from alembic import op
 from sqlalchemy.sql import func
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import UUID
+from dotenv import load_dotenv
 
+load_dotenv()
 
 # revision identifiers, used by Alembic.
 revision: str = '699ee49876d9'
@@ -104,6 +106,23 @@ def upgrade() -> None:
         sa.Column('created_time', sa.TIMESTAMP, server_default=func.now(), nullable=False),
         sa.Column('updated_time', sa.TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False),
     )
+
+    # dummy 100 ticket
+    debug = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
+    if debug:
+        conn = op.get_bind()
+        insert_sql = """
+        INSERT INTO tickets (user_id, code, exp_start_time, exp_end_time, status, created_time, updated_time)
+        VALUES {}
+        """.format(
+            ",\n".join(
+                [
+                    f"(1, 'TICKET-{i:05}', now(), now() + interval '30 day', 'active', now(), now())"
+                    for i in range(1, 101)
+                ]
+            )
+        )
+        conn.execute(sa.text(insert_sql))
 
 
 def downgrade() -> None:

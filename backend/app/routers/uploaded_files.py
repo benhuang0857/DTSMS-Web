@@ -1,14 +1,19 @@
 from fastapi import Form, APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from typing import List, Optional
+from typing import Optional, List
+import os
+import zipfile
 from models import UploadedFile as FileModel
-from schemas import UploadedFileCreate, UploadedFileUpdate, UploadedFile
+from schemas import UploadedFile
 from database import get_db
 from routers.auth import get_current_user
-from enums import TrackingStatus
+from schemas import UploadedFileUpdate
 
 router = APIRouter()
+
+UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/", response_model=UploadedFile)
 async def upload_file(
@@ -20,19 +25,41 @@ async def upload_file(
     current_user: dict = Depends(get_current_user)
 ):
     try:
-        file_name = uploaded_file.filename
+        original_name = uploaded_file.filename
         file_type = uploaded_file.content_type
-        content = await uploaded_file.read()
-        file_size = len(content)
 
-        if db.query(FileModel).filter(FileModel.name == file_name, FileModel.user_id == current_user.id).first():
+        # 檢查重複檔名
+        if db.query(FileModel).filter(FileModel.name == original_name, FileModel.user_id == current_user.id).first():
             raise HTTPException(status_code=400, detail="相同名稱的檔案已存在")
 
+        # 暫存原始檔
+        temp_path = os.path.join(UPLOAD_DIR, f"tmp_{original_name}")
+        with open(temp_path, "wb") as f:
+            while chunk := await uploaded_file.read(1024 * 1024):  # 1MB chunk
+                f.write(chunk)
+
+        # zip 路徑
+        zip_name = f"{os.path.splitext(original_name)[0]}.zip"
+        zip_path = os.path.join(UPLOAD_DIR, zip_name)
+
+        # 壓縮檔案 + 寫 meta.txt
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            zipf.write(temp_path, arcname=original_name)
+            meta_content = f"ticket_code={ticket_id}\nunzip_password={unzip_password or ''}\n"
+            zipf.writestr('meta.txt', meta_content)
+
+        # 刪掉原始檔
+        os.remove(temp_path)
+
+        # 取得檔案大小
+        file_size = os.path.getsize(zip_path)
+
+        # 存 DB
         db_file = FileModel(
             user_id=current_user.id,
             ticket_id=ticket_id,
-            name=file_name,
-            ftype=file_type,
+            name=zip_name,
+            ftype="application/zip",
             fsize=file_size,
             unzip_password=unzip_password,
             description=description,
@@ -41,9 +68,6 @@ async def upload_file(
         db.add(db_file)
         db.commit()
         db.refresh(db_file)
-
-        with open(f"uploads/{file_name}", "wb") as f:
-            f.write(content)
 
         return db_file
 

@@ -28,6 +28,7 @@ import { defineComponent, ref } from 'vue';
 
 export default defineComponent({
     name: 'DragAndDrop',
+    emits: ['file-dropped'],
     setup(_, { emit }) {
         const isDragging = ref(false);
         const fileInput = ref<HTMLInputElement | null>(null);
@@ -44,7 +45,8 @@ export default defineComponent({
             isDragging.value = false;
             const files = event.dataTransfer?.files;
             if (files && files.length > 0) {
-                emit('file-dropped', files[0]); // 發送單個文件，可改為多文件
+                const fileArray = Array.from(files);
+                emit('file-dropped', fileArray); // 改為發送整個陣列
             }
         };
 
@@ -58,8 +60,11 @@ export default defineComponent({
             const target = event.target as HTMLInputElement;
             const files = target.files;
             if (files && files.length > 0) {
-                emit('file-dropped', files[0]); // 發送單個文件，可改為多文件
+                const fileArray = Array.from(files);
+                emit('file-dropped', fileArray); // 改為發送整個陣列
             }
+
+            target.value = '';
         };
 
         return {

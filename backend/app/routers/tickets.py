@@ -74,14 +74,14 @@ def get_tickets(
             detail={"code": 500, "message": f"伺服器內部錯誤: {str(e)}"}
         )
 
-@router.get("/{ticket_id}", response_model=Ticket)
+@router.get("/{ticket_code}", response_model=Ticket)
 def get_ticket(
-    ticket_id: int,
+    ticket_code: str,
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_user)
 ):
     try:
-        db_ticket = db.query(TicketModel).filter(TicketModel.id == ticket_id).first()
+        db_ticket = db.query(TicketModel).filter(TicketModel.code == ticket_code).first()
         if not db_ticket:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
