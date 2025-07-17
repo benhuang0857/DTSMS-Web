@@ -124,18 +124,6 @@ def upgrade() -> None:
         )
         conn.execute(sa.text(insert_sql))
 
-    # dummy 3 processing_steps
-    if debug:
-        conn = op.get_bind()
-        insert_steps_sql = """
-        INSERT INTO processing_steps (autoflow_id, name, description, created_time, updated_time)
-        VALUES
-            (NULL, 'Step 1', 'First dummy step', now(), now()),
-            (NULL, 'Step 2', 'Second dummy step', now(), now()),
-            (NULL, 'Step 3', 'Third dummy step', now(), now())
-        """
-        conn.execute(sa.text(insert_steps_sql))
-
 
 def downgrade() -> None:
     """Downgrade schema."""

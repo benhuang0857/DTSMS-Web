@@ -5,46 +5,101 @@ from sqlalchemy import func
 from typing import Optional, List
 from models import Autoflow as AutoflowModel
 from models import Recipe as RecipeModel
+from models import RecipeStep as RecipeStepModel
 from models import ProcessingStep as ProcessingStepModel
-from schemas.autoflow import Autoflow, AutoflowWithRelations, AutoflowWithSteps, AutoflowCreate, AutoflowUpdate
+from schemas.autoflow import Autoflow, AutoflowWithRelations, AutoflowWithSteps, AutoflowWithFull, AutoflowCreate, AutoflowUpdate
 from database import get_db
 from routers.auth import get_current_user
 
 router = APIRouter()
 
-@router.get("/", response_model=List[AutoflowWithRelations])
+@router.get("/", response_model=List[AutoflowWithFull])
 def get_autoflows(skip: int = 0, limit: int = 10, 
                   db: Session = Depends(get_db), 
                   current_user: dict = Depends(get_current_user)):
     """
-    獲取自動化流程列表（包含關聯資料）
+    獲取自動化流程列表（包含完整的關聯資料：recipe、recipe_steps 和 processing_steps）
     """
     try:
-        # 簡化查詢，先不包含 GROUP BY，避免複雜的關聯查詢錯誤
-        query = db.query(AutoflowModel).offset(skip).limit(limit)
+        # 查詢自動化流程
+        autoflows = db.query(AutoflowModel).offset(skip).limit(limit).all()
         
-        results = query.all()
-        
-        # 轉換為 AutoflowWithRelations 格式
+        # 轉換為 AutoflowWithFull 格式
         autoflow_list = []
-        for row in results:
-            # 計算處理步驟數量
-            steps_count = db.query(ProcessingStepModel).filter(
-                ProcessingStepModel.autoflow_id == row.id
-            ).count()
+        for autoflow in autoflows:
+            # 查詢 processing_steps
+            processing_steps = db.query(ProcessingStepModel).filter(
+                ProcessingStepModel.autoflow_id == autoflow.id
+            ).all()
+            
+            # 轉換 processing_steps 為字典格式
+            processing_steps_data = [
+                {
+                    "id": step.id,
+                    "name": step.name,
+                    "description": step.description,
+                    "created_time": step.created_time,
+                    "updated_time": step.updated_time
+                } for step in processing_steps
+            ]
+            
+            # 查詢 recipe 資訊
+            recipe_data = None
+            recipe_name = None
+            recipe_description = None
+            
+            if autoflow.recipe_id:
+                recipe = db.query(RecipeModel).filter(
+                    RecipeModel.id == autoflow.recipe_id
+                ).first()
+                
+                if recipe:
+                    recipe_name = recipe.name
+                    recipe_description = recipe.description
+                    
+                    # 查詢 recipe_steps
+                    recipe_steps = db.query(RecipeStepModel).filter(
+                        RecipeStepModel.recipe_id == recipe.id
+                    ).order_by(RecipeStepModel.number).all()
+                    
+                    # 轉換 recipe_steps 為字典格式
+                    recipe_steps_data = [
+                        {
+                            "id": step.id,
+                            "recipe_id": step.recipe_id,
+                            "number": step.number,
+                            "action": step.action,
+                            "parameters": step.parameters,
+                            "status": step.status,
+                            "created_time": step.created_time,
+                            "updated_time": step.updated_time
+                        } for step in recipe_steps
+                    ]
+                    
+                    recipe_data = {
+                        "id": recipe.id,
+                        "name": recipe.name,
+                        "description": recipe.description,
+                        "status": recipe.status,
+                        "created_time": recipe.created_time,
+                        "updated_time": recipe.updated_time,
+                        "recipe_steps": recipe_steps_data
+                    }
             
             autoflow_list.append(
-                AutoflowWithRelations(
-                    id=row.id,
-                    recipe_id=row.recipe_id,
-                    name=row.name,
-                    description=row.description,
-                    status=row.status,
-                    created_time=row.created_time,
-                    updated_time=row.updated_time,
-                    recipe_name=None,  # 暫時設為 None
-                    recipe_description=None,  # 暫時設為 None
-                    processing_steps_count=steps_count
+                AutoflowWithFull(
+                    id=autoflow.id,
+                    recipe_id=autoflow.recipe_id,
+                    name=autoflow.name,
+                    description=autoflow.description,
+                    status=autoflow.status,
+                    created_time=autoflow.created_time,
+                    updated_time=autoflow.updated_time,
+                    recipe_name=recipe_name,
+                    recipe_description=recipe_description,
+                    processing_steps_count=len(processing_steps_data),
+                    processing_steps=processing_steps_data,
+                    recipe=recipe_data
                 )
             )
         

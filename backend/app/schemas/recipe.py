@@ -74,8 +74,20 @@ class RecipeWithSteps(RecipeWithRelations):
     class Config:
         from_attributes = True
 
+class AutoflowInfo(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    status: BasicStatus
+    created_time: datetime
+    updated_time: datetime
+    processing_steps: List[dict] = []
+
+    class Config:
+        from_attributes = True
+
 class RecipeWithFull(RecipeWithSteps):
-    autoflows: List[dict] = []
+    autoflows: List[AutoflowInfo] = []
 
     class Config:
         from_attributes = True

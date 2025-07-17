@@ -7,34 +7,65 @@ from models import Recipe as RecipeModel
 from models import RecipeStep as RecipeStepModel
 from models import Library as LibraryModel
 from models import Autoflow as AutoflowModel
+from models import ProcessingStep as ProcessingStepModel
 from schemas.recipe import Recipe, RecipeWithRelations, RecipeWithSteps, RecipeWithFull, RecipeCreate, RecipeUpdate
 from database import get_db
 from routers.auth import get_current_user
 
 router = APIRouter()
 
-@router.get("/", response_model=List[RecipeWithRelations])
+@router.get("/", response_model=List[RecipeWithFull])
 def get_recipes(skip: int = 0, limit: int = 10, 
                 db: Session = Depends(get_db), 
                 current_user: dict = Depends(get_current_user)):
     """
-    獲取配方列表（包含關聯資料）
+    獲取配方列表（包含完整的關聯資料：recipe_steps、autoflows 和 processing_steps）
     """
     try:
-        # 簡化查詢，避免複雜的 JOIN 操作
+        # 查詢配方
         recipes = db.query(RecipeModel).offset(skip).limit(limit).all()
         
-        # 轉換為 RecipeWithRelations 格式
+        # 轉換為 RecipeWithFull 格式
         recipe_list = []
         for recipe in recipes:
-            # 計算相關聯的數量
-            steps_count = db.query(RecipeStepModel).filter(
+            # 查詢配方步驟
+            recipe_steps = db.query(RecipeStepModel).filter(
                 RecipeStepModel.recipe_id == recipe.id
-            ).count()
+            ).order_by(RecipeStepModel.number).all()
             
-            autoflows_count = db.query(AutoflowModel).filter(
+            # 查詢 autoflows
+            autoflows = db.query(AutoflowModel).filter(
                 AutoflowModel.recipe_id == recipe.id
-            ).count()
+            ).all()
+            
+            # 準備 autoflows 資料（包含 processing_steps）
+            autoflows_data = []
+            for autoflow in autoflows:
+                # 查詢該 autoflow 的 processing_steps
+                processing_steps = db.query(ProcessingStepModel).filter(
+                    ProcessingStepModel.autoflow_id == autoflow.id
+                ).all()
+                
+                # 轉換 processing_steps 為字典格式
+                processing_steps_data = [
+                    {
+                        "id": step.id,
+                        "name": step.name,
+                        "description": step.description,
+                        "created_time": step.created_time,
+                        "updated_time": step.updated_time
+                    } for step in processing_steps
+                ]
+                
+                autoflows_data.append({
+                    "id": autoflow.id,
+                    "name": autoflow.name,
+                    "description": autoflow.description,
+                    "status": autoflow.status,
+                    "created_time": autoflow.created_time,
+                    "updated_time": autoflow.updated_time,
+                    "processing_steps": processing_steps_data
+                })
             
             # 取得 library 名稱
             library_name = None
@@ -46,7 +77,7 @@ def get_recipes(skip: int = 0, limit: int = 10,
                     library_name = library.name
             
             recipe_list.append(
-                RecipeWithRelations(
+                RecipeWithFull(
                     id=recipe.id,
                     library_id=recipe.library_id,
                     name=recipe.name,
@@ -55,8 +86,10 @@ def get_recipes(skip: int = 0, limit: int = 10,
                     created_time=recipe.created_time,
                     updated_time=recipe.updated_time,
                     library_name=library_name,
-                    recipe_steps_count=steps_count,
-                    autoflows_count=autoflows_count
+                    recipe_steps_count=len(recipe_steps),
+                    autoflows_count=len(autoflows_data),
+                    recipe_steps=recipe_steps,
+                    autoflows=autoflows_data
                 )
             )
         
@@ -302,6 +335,95 @@ def delete_recipe(recipe_id: int,
         return {"message": "配方已成功刪除"}
     except SQLAlchemyError as e:
         db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"code": 500, "message": f"資料庫錯誤: {str(e)}"}
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"code": 500, "message": f"伺服器內部錯誤: {str(e)}"}
+        )
+
+@router.get("/{recipe_id}/full", response_model=RecipeWithFull)
+def get_recipe_full(recipe_id: int, 
+                    db: Session = Depends(get_db),
+                    current_user: dict = Depends(get_current_user)):
+    """
+    根據 ID 獲取完整的配方資訊（包含 recipe_steps、autoflows 和 processing_steps）
+    """
+    try:
+        # 查詢配方
+        recipe = db.query(RecipeModel).filter(
+            RecipeModel.id == recipe_id
+        ).first()
+        
+        if not recipe:
+            raise HTTPException(status_code=404, detail="配方未找到")
+        
+        # 查詢配方步驟
+        recipe_steps = db.query(RecipeStepModel).filter(
+            RecipeStepModel.recipe_id == recipe_id
+        ).order_by(RecipeStepModel.number).all()
+        
+        # 查詢 autoflows
+        autoflows = db.query(AutoflowModel).filter(
+            AutoflowModel.recipe_id == recipe_id
+        ).all()
+        
+        # 準備 autoflows 資料（包含 processing_steps）
+        autoflows_data = []
+        for autoflow in autoflows:
+            # 查詢該 autoflow 的 processing_steps
+            processing_steps = db.query(ProcessingStepModel).filter(
+                ProcessingStepModel.autoflow_id == autoflow.id
+            ).all()
+            
+            # 轉換 processing_steps 為字典格式
+            processing_steps_data = [
+                {
+                    "id": step.id,
+                    "name": step.name,
+                    "description": step.description,
+                    "created_time": step.created_time,
+                    "updated_time": step.updated_time
+                } for step in processing_steps
+            ]
+            
+            autoflows_data.append({
+                "id": autoflow.id,
+                "name": autoflow.name,
+                "description": autoflow.description,
+                "status": autoflow.status,
+                "created_time": autoflow.created_time,
+                "updated_time": autoflow.updated_time,
+                "processing_steps": processing_steps_data
+            })
+        
+        # 取得 library 名稱
+        library_name = None
+        if recipe.library_id:
+            library = db.query(LibraryModel).filter(
+                LibraryModel.id == recipe.library_id
+            ).first()
+            if library:
+                library_name = library.name
+        
+        return RecipeWithFull(
+            id=recipe.id,
+            library_id=recipe.library_id,
+            name=recipe.name,
+            description=recipe.description,
+            status=recipe.status,
+            created_time=recipe.created_time,
+            updated_time=recipe.updated_time,
+            library_name=library_name,
+            recipe_steps_count=len(recipe_steps),
+            autoflows_count=len(autoflows_data),
+            recipe_steps=recipe_steps,
+            autoflows=autoflows_data
+        )
+    except SQLAlchemyError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"code": 500, "message": f"資料庫錯誤: {str(e)}"}
