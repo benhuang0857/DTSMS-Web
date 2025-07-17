@@ -5,10 +5,13 @@ from typing import Optional, List
 import os
 import zipfile
 from models import UploadedFile as FileModel
+from models import FileTracking as TrackingModel
+from models import ProcessingStep as ProcessingStepModel
 from schemas import UploadedFile
 from database import get_db
 from routers.auth import get_current_user
 from schemas import UploadedFileUpdate
+from datetime import datetime
 
 router = APIRouter()
 
@@ -66,6 +69,17 @@ async def upload_file(
             status="pending"
         )
         db.add(db_file)
+        db.flush()
+
+        # 存 Tracking
+        db_tracking = TrackingModel(
+            uploaded_file_id=db_file.id,
+            step_id=1,
+            start_time=datetime.utcnow(),
+            status="pending"
+        )
+        db.add(db_tracking)
+
         db.commit()
         db.refresh(db_file)
 

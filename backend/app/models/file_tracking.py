@@ -18,7 +18,7 @@ class FileTracking(Base):
     
     id = Column(BigInteger, primary_key=True, index=True, comment="主鍵ID")
     tracking_id = Column(UUID(as_uuid=True), unique=True, nullable=False, server_default=func.text("gen_random_uuid()"), comment="唯一追蹤ID")
-    file_id = Column(BigInteger, ForeignKey('files.id'), nullable=False, comment="關聯檔案ID")
+    uploaded_file_id = Column(BigInteger, ForeignKey('uploaded_files.id'), nullable=False, comment="關聯檔案ID")
     step_id = Column(BigInteger, ForeignKey('processing_steps.id'), nullable=False, comment="關聯處理步驟ID")
     start_time = Column(TIMESTAMP, nullable=False, comment="開始時間")
     end_time = Column(TIMESTAMP, nullable=True, comment="結束時間")
