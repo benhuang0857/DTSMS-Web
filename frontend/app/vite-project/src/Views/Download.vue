@@ -103,7 +103,7 @@ export default defineComponent({
     setup() {
         const menuItems = ref([
             { label: 'Dashboard', link: '/dashboard', icon: 'fas fa-tachometer-alt', active: true },
-            { label: 'Automation Control', link: '/flowchart', icon: 'fas fa-robot', active: false },
+            { label: 'Automation Control', link: '/automation', icon: 'fas fa-robot', active: false },
             { label: 'Download History', link: '/downloads', icon: 'fas fa-download', active: false },
             { label: 'Submission', link: '/submissions', icon: 'fas fa-upload', active: false },
             { label: 'Setting', link: '/setting', icon: 'fas fa-cog', active: false },

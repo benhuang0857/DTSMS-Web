@@ -4,7 +4,7 @@ import Dashboard from '@/views/Dashboard.vue';
 import Download from '@/views/Download.vue';
 import Submission from '@/views/Submission.vue';
 import Setting from '@/views/Setting.vue';
-import Flowchart from '@/views/Flowchart.vue';
+import Automation from '@/views/Automation.vue';
 
 const routes = [
     {
@@ -33,9 +33,9 @@ const routes = [
         component: Setting,
     },
     {
-        path: '/flowchart',
-        name: 'Flowchart',
-        component: Flowchart,
+        path: '/automation',
+        name: 'Automation',
+        component: Automation,
     },
 ];
 
