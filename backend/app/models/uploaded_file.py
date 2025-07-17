@@ -19,7 +19,8 @@ class UploadedFile(Base):
     created_time = Column(TIMESTAMP, server_default=func.now(), nullable=False, comment="建立時間")
     updated_time = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新時間")
 
-    # Relationship
+    # Relationships
     ticket = relationship("Ticket", back_populates="uploaded_file", lazy="joined")
     user = relationship("User", back_populates="uploaded_files", lazy="joined")
+    file_trackings = relationship("FileTracking", back_populates="uploaded_file", lazy="select")
     

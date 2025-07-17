@@ -179,8 +179,8 @@ export default defineComponent({
                         }
                 });
                 const uploadedFile = response.data;
-                uploadedFiles.value.push(uploadedFile.filename);
-                showDialog('文件上傳成功！', `Tracking Number:, ${uploadedFile.tracking_num}`);
+                uploadedFiles.value.push(uploadedFile.name);
+                showDialog('文件上傳成功！', `Tracking ID: ${uploadedFile.id}`);
 
                 fileQueue.value.splice(index, 1);
 

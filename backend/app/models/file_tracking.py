@@ -9,6 +9,7 @@ from sqlalchemy import (
     ForeignKey,
 )
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from models.base import Base
 from enums import TrackingStatus
@@ -27,3 +28,7 @@ class FileTracking(Base):
     note = Column(Text, nullable=True, comment="備註")
     created_time = Column(TIMESTAMP, server_default=func.now(), nullable=False, comment="建立時間")
     updated_time = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新時間")
+
+    # Relationships
+    uploaded_file = relationship("UploadedFile", back_populates="file_trackings", lazy="joined")
+    processing_step = relationship("ProcessingStep", back_populates="file_trackings", lazy="joined")

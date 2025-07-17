@@ -1,4 +1,5 @@
 from sqlalchemy import Column, BigInteger, Integer, String, TIMESTAMP, Enum
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from models.base import Base
 from enums import BasicStatus
@@ -20,3 +21,6 @@ class Library(Base):
     status = Column(Enum(BasicStatus, name="basic_status"), nullable=False, comment="狀態")
     created_time = Column(TIMESTAMP, server_default=func.now(), nullable=False, comment="Creation Time")
     updated_time = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False, comment="Update Time")
+
+    # Relationships
+    recipes = relationship("Recipe", back_populates="library", lazy="select")

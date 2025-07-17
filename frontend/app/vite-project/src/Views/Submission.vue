@@ -13,6 +13,9 @@
                         <option value="50">50</option>
                     </select>
                     <span class="ml-2 text-gray-600">entries</span>
+                    <button @click="fetchData" class="ml-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                        重新整理
+                    </button>
                 </div>
 
                 <!-- Search -->
@@ -28,18 +31,18 @@
                     <thead class="bg-gray-100">
                         <tr>
                             <th class="p-2">Tracking ID</th>
-                            <th class="p-2">Token</th>
+                            <th class="p-2">Step Name</th>
+                            <th class="p-2">Start Time</th>
                             <th class="p-2">File Name</th>
-                            <th class="p-2">Date</th>
                             <th class="p-2">Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="row in paginatedData" :key="row.id" class="hover:bg-gray-50 border-b">
-                            <td class="p-2">#{{ row.tracking_num }}</td>
-                            <td class="p-2">{{ row.token || 'N/A' }}</td>
-                            <td class="p-2">{{ row.filename }}</td>
-                            <td class="p-2">{{ formatDate(row.created_time) }}</td>
+                            <td class="p-2">{{ row.tracking_id || 'N/A' }}</td>
+                            <td class="p-2">{{ row.step_name || 'N/A' }}</td>
+                            <td class="p-2">{{ formatDate(row.start_time) }}</td>
+                            <td class="p-2">{{ row.uploaded_file_name }}</td>
                             <td class="p-2">
                                 <span :class="statusClass(row.status)" class="px-2 py-1 rounded-md text-white">
                                     {{ row.status }}
@@ -101,7 +104,7 @@ export default defineComponent({
         // 從後端獲取數據
         const fetchData = async () => {
             try {
-                const response = await axios.get('http://172.31.176.1:8000/file_uploads', {
+                const response = await axios.get('http://172.31.176.1:8000/api/file-trackings/', {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token') || ''}`
                     }
@@ -123,7 +126,9 @@ export default defineComponent({
         // 過濾數據（基於搜索）
         const filteredData = computed(() =>
             data.value.filter((item) =>
-                item.filename.toLowerCase().includes(search.value.toLowerCase())
+                item.uploaded_file_name?.toLowerCase().includes(search.value.toLowerCase()) ||
+                item.step_name?.toLowerCase().includes(search.value.toLowerCase()) ||
+                item.tracking_id?.toString().toLowerCase().includes(search.value.toLowerCase())
             )
         );
 
@@ -146,19 +151,24 @@ export default defineComponent({
         // 狀態顏色
         const statusClass = (status: string) => {
             switch (status) {
-                case "Completed":
+                case "success":
                     return "bg-green-500";
-                case "Failed":
+                case "error":
                     return "bg-red-500";
-                case "Process":
+                case "dangerous":
+                    return "bg-red-700";
+                case "in_progress":
                     return "bg-yellow-500";
+                case "pending":
+                    return "bg-blue-500";
                 default:
                     return "bg-gray-500";
             }
         };
 
         // 格式化日期
-        const formatDate = (dateString: string) => {
+        const formatDate = (dateString: string | null) => {
+            if (!dateString) return 'N/A';
             const date = new Date(dateString);
             return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
         };
@@ -176,6 +186,7 @@ export default defineComponent({
             nextPage,
             statusClass,
             formatDate,
+            fetchData,
         };
     },
 });
