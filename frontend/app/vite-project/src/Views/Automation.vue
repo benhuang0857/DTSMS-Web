@@ -189,6 +189,7 @@
                 @connect="onConnect"
                 @nodes-delete="onNodesDelete"
                 @edges-delete="onEdgesDelete"
+                :is-valid-connection="isValidConnection"
                 :fit-view-on-init="true"
                 :nodes-draggable="true"
                 :nodes-connectable="true"
@@ -502,6 +503,62 @@ const onConnect = (connection: Connection) => {
   addEdges([newEdge]);
 };
 
+// Validate connection based on API relationships
+const isValidConnection = (connection: Connection) => {
+  const sourceNode = nodes.value.find((node: { id: string; }) => node.id === connection.source);
+  const targetNode = nodes.value.find((node: { id: string; }) => node.id === connection.target);
+  
+  if (!sourceNode || !targetNode) return false;
+  
+  const sourceType = sourceNode.type;
+  const targetType = targetNode.type;
+  
+  // Define valid connection rules based on API hierarchy
+  const validConnections = [
+    // Recipe can only connect to Autoflow
+    { from: 'recipe', to: 'autoflow' },
+    // Autoflow can connect to Processing Steps
+    { from: 'autoflow', to: 'step' },
+    // Processing Steps can connect to other Processing Steps
+    { from: 'step', to: 'step' }
+  ];
+  
+  // Check if this connection type is allowed
+  const isAllowedType = validConnections.some(rule => 
+    rule.from === sourceType && rule.to === targetType
+  );
+  
+  if (!isAllowedType) {
+    console.warn(`Invalid connection: ${sourceType} cannot connect to ${targetType}`);
+    return false;
+  }
+  
+  // Additional validation based on API relationships
+  if (sourceType === 'recipe' && targetType === 'autoflow') {
+    // Recipe can only connect to its own autoflows
+    const recipeId = sourceNode.data.id;
+    const autoflowRecipeId = targetNode.data.recipe_id;
+    
+    if (autoflowRecipeId && autoflowRecipeId !== recipeId) {
+      console.warn(`Recipe ${recipeId} cannot connect to autoflow ${targetNode.data.id} (belongs to recipe ${autoflowRecipeId})`);
+      return false;
+    }
+  }
+  
+  if (sourceType === 'autoflow' && targetType === 'step') {
+    // Autoflow can only connect to its own processing steps
+    const autoflowId = sourceNode.data.id;
+    const stepAutoflowId = targetNode.data.autoflow_id;
+    
+    if (stepAutoflowId && stepAutoflowId !== autoflowId) {
+      console.warn(`Autoflow ${autoflowId} cannot connect to step ${targetNode.data.id} (belongs to autoflow ${stepAutoflowId})`);
+      return false;
+    }
+  }
+  
+  return true;
+};
+
 // Handle node deletion
 const onNodesDelete = (deletedNodes: Node[]) => {
   console.log('Nodes deleted:', deletedNodes);
@@ -533,15 +590,106 @@ const onKeyDown = (event: KeyboardEvent) => {
 };
 
 const addNodeToCanvas = (type: string, item: any, x: number, y: number) => {
-  const node: Node = {
-    id: `${type}_${item.id}`,
-    type,
-    position: { x, y },
-    data: { ...item },
-    class: `${type}-node`,
-  };
+  if (type === 'recipe') {
+    // For Recipe, create the recipe node and all its related autoflows and steps
+    addRecipeWithChildren(item, x, y);
+  } else {
+    // For single nodes (autoflow or step)
+    const node: Node = {
+      id: `${type}_${item.id}`,
+      type,
+      position: { x, y },
+      data: { ...item },
+      class: `${type}-node`,
+    };
+    
+    addNodes([node]);
+  }
+};
+
+const addRecipeWithChildren = (recipe: any, startX: number, startY: number) => {
+  const newNodes: Node[] = [];
+  const newEdges: Edge[] = [];
   
-  addNodes([node]);
+  // Create Recipe node
+  const recipeNode: Node = {
+    id: `recipe_${recipe.id}`,
+    type: 'recipe',
+    position: { x: startX, y: startY },
+    data: { ...recipe },
+    class: 'recipe-node',
+  };
+  newNodes.push(recipeNode);
+  
+  // Layout parameters
+  const autoflowSpacing = 400;
+  const autoflowStartY = startY + 200;
+  const stepSpacing = 200;
+  const stepStartY = autoflowStartY + 200;
+  
+  // Create Autoflow nodes and their Processing Steps
+  if (recipe.autoflows && recipe.autoflows.length > 0) {
+    recipe.autoflows.forEach((autoflow: any, autoflowIndex: number) => {
+      const autoflowX = startX + (autoflowIndex * autoflowSpacing);
+      
+      // Create Autoflow node
+      const autoflowNode: Node = {
+        id: `autoflow_${autoflow.id}`,
+        type: 'autoflow',
+        position: { x: autoflowX, y: autoflowStartY },
+        data: { ...autoflow },
+        class: 'autoflow-node',
+      };
+      newNodes.push(autoflowNode);
+      
+      // Create edge from Recipe to Autoflow
+      newEdges.push({
+        id: `e-${recipeNode.id}-${autoflowNode.id}`,
+        source: recipeNode.id,
+        target: autoflowNode.id,
+        type: 'bezier',
+      });
+      
+      // Create Processing Step nodes
+      if (autoflow.processing_steps && autoflow.processing_steps.length > 0) {
+        let previousNodeId = autoflowNode.id;
+        
+        autoflow.processing_steps.forEach((step: any, stepIndex: number) => {
+          const stepX = autoflowX + (stepIndex * stepSpacing) - ((autoflow.processing_steps.length - 1) * stepSpacing / 2);
+          const stepY = stepStartY + (stepIndex * 150);
+          
+          const stepNode: Node = {
+            id: `step_${step.id}`,
+            type: 'step',
+            position: { x: stepX, y: stepY },
+            data: { ...step },
+            class: 'step-node',
+          };
+          newNodes.push(stepNode);
+          
+          // Create edge from previous node to current step
+          newEdges.push({
+            id: `e-${previousNodeId}-${stepNode.id}`,
+            source: previousNodeId,
+            target: stepNode.id,
+            type: 'bezier',
+          });
+          
+          previousNodeId = stepNode.id;
+        });
+      }
+    });
+  }
+  
+  // Add nodes first, then edges after nodes are available
+  console.log('Creating nodes:', newNodes.map(n => n.id));
+  addNodes(newNodes);
+  
+  // Use nextTick to ensure nodes are rendered before creating edges
+  nextTick(() => {
+    console.log('Creating edges:', newEdges.map(e => `${e.id}: ${e.source} -> ${e.target}`));
+    addEdges(newEdges);
+  });
 };
 
 // Recipe operations
@@ -1065,11 +1213,56 @@ onUnmounted(() => {
   @apply border-blue-500;
 }
 
+/* Edge (line) styling */
 :deep(.vue-flow__edge) {
-  @apply stroke-2;
+  stroke-width: 4px !important;
 }
 
 :deep(.vue-flow__edge-path) {
-  @apply stroke-blue-500;
+  stroke: #3b82f6 !important;
+  stroke-width: 4px !important;
 }
+
+:deep(.vue-flow__edge.selected .vue-flow__edge-path) {
+  stroke: #1d4ed8 !important;
+  stroke-width: 5px !important;
+}
+
+/* Handle (connection point) styling */
+:deep(.vue-flow__handle) {
+  width: 12px !important;
+  height: 12px !important;
+  border: 3px solid #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+:deep(.vue-flow__handle-top) {
+  top: -6px !important;
+}
+
+:deep(.vue-flow__handle-bottom) {
+  bottom: -6px !important;
+}
+
+:deep(.vue-flow__handle-left) {
+  left: -6px !important;
+}
+
+:deep(.vue-flow__handle-right) {
+  right: -6px !important;
+}
+
+/* Handle colors for different types */
+:deep(.recipe-node .vue-flow__handle) {
+  background: #3b82f6 !important;
+}
+
+:deep(.autoflow-node .vue-flow__handle) {
+  background: #10b981 !important;
+}
+
+:deep(.step-node .vue-flow__handle) {
+  background: #8b5cf6 !important;
+}
+
 </style>
