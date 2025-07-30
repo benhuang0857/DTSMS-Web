@@ -10,7 +10,7 @@
         <span class="badge">{{ data.autoflows_count || data.autoflows?.length || 0 }} autoflows</span>
         <span class="badge">{{ data.recipe_steps_count || data.recipe_steps?.length || 0 }} steps</span>
       </div>
-      <Handle type="source" position="bottom" />
+      <Handle id="recipe-source" type="source" position="bottom" />
     </div>
   </div>
 </template>

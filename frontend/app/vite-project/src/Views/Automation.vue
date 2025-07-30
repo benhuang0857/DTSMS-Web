@@ -186,9 +186,14 @@
                 v-model:edges="edges"
                 @dragover="onDragOver"
                 @drop="onDrop"
+                @connect="onConnect"
+                @nodes-delete="onNodesDelete"
+                @edges-delete="onEdgesDelete"
                 :fit-view-on-init="true"
                 :nodes-draggable="true"
                 :nodes-connectable="true"
+                :nodes-deletable="true"
+                :edges-deletable="true"
                 :edge-types="edgeTypes"
               >
                 <template #node-recipe="recipeProps">
@@ -323,9 +328,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
-import { VueFlow, useVueFlow, type Node, type Edge } from '@vue-flow/core';
+import { VueFlow, useVueFlow, type Node, type Edge, type Connection, BezierEdge } from '@vue-flow/core';
 import axios from 'axios';
 import LeftMenu from '@/components/LeftMenu.vue';
 import RecipeNode from '@/components/RecipeNode.vue';
@@ -333,10 +338,10 @@ import AutoflowNode from '@/components/AutoflowNode.vue';
 import StepNode from '@/components/StepNode.vue';
 
 // Vue Flow setup
-const { addNodes, addEdges, setNodes, setEdges } = useVueFlow();
+const { addNodes, addEdges, setNodes, setEdges, removeNodes, removeEdges, getSelectedNodes, getSelectedEdges } = useVueFlow();
 const nodes = ref<Node[]>([]);
 const edges = ref<Edge[]>([]);
-const edgeTypes = { default: 'bezier' };
+const edgeTypes = { bezier: BezierEdge };
 
 // Authentication and routing
 const router = useRouter();
@@ -482,6 +487,48 @@ const onDrop = (event: DragEvent) => {
     }
     
     addNodeToCanvas(data.type, data.item, event.offsetX, event.offsetY);
+  }
+};
+
+// Handle node connections
+const onConnect = (connection: Connection) => {
+  const newEdge: Edge = {
+    id: `e-${connection.source}-${connection.target}`,
+    source: connection.source!,
+    target: connection.target!,
+    type: 'bezier',
+  };
+  
+  addEdges([newEdge]);
+};
+
+// Handle node deletion
+const onNodesDelete = (deletedNodes: Node[]) => {
+  console.log('Nodes deleted:', deletedNodes);
+  // Optional: Add any cleanup logic here
+};
+
+// Handle edge deletion
+const onEdgesDelete = (deletedEdges: Edge[]) => {
+  console.log('Edges deleted:', deletedEdges);
+  // Optional: Add any cleanup logic here
+};
+
+// Handle keyboard events for deletion
+const onKeyDown = (event: KeyboardEvent) => {
+  if (event.key === 'Delete' || event.key === 'Backspace') {
+    event.preventDefault();
+    
+    const selectedNodes = getSelectedNodes.value;
+    const selectedEdges = getSelectedEdges.value;
+    
+    if (selectedNodes.length > 0) {
+      removeNodes(selectedNodes.map((node: { id: any; }) => node.id));
+    }
+    
+    if (selectedEdges.length > 0) {
+      removeEdges(selectedEdges.map((edge: { id: any; }) => edge.id));
+    }
   }
 };
 
@@ -751,6 +798,14 @@ onMounted(async () => {
     await loadData();
     await nextTick();
   }
+  
+  // Add keyboard event listener
+  document.addEventListener('keydown', onKeyDown);
+});
+
+onUnmounted(() => {
+  // Remove keyboard event listener
+  document.removeEventListener('keydown', onKeyDown);
 });
 </script>
 

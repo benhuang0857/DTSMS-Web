@@ -9,8 +9,8 @@
       <div class="node-meta">
         <span class="badge">{{ data.processing_steps_count || data.processing_steps?.length || 0 }} steps</span>
       </div>
-      <Handle type="target" position="top" />
-      <Handle type="source" position="bottom" />
+      <Handle id="autoflow-target" type="target" position="top" />
+      <Handle id="autoflow-source" type="source" position="bottom" />
     </div>
   </div>
 </template>

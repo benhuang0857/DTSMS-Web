@@ -6,8 +6,8 @@
     </div>
     <div class="node-content">
       <p class="node-description">{{ data.description || '' }}</p>
-      <Handle type="target" position="top" />
-      <Handle type="source" position="bottom" />
+      <Handle id="step-target" type="target" position="top" />
+      <Handle id="step-source" type="source" position="bottom" />
     </div>
   </div>
 </template>
