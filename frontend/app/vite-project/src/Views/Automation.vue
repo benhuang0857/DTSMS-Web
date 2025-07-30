@@ -4,170 +4,170 @@
     
     <main class="flex-1 flex flex-col">
       <div class="automation-container">
-        <!-- 頁面標題 -->
+        <!-- Page Header -->
         <div class="page-header">
           <h1 class="text-2xl font-bold text-gray-800">自動化流程設計</h1>
           <p class="text-gray-600">設計和管理 Recipe、Autoflow 和 Processing Steps</p>
         </div>
 
-    <!-- 工具欄 -->
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <button @click="showRecipeModal = true" class="btn btn-primary">
-          <i class="fas fa-plus"></i> 新增 Recipe
-        </button>
-        <button @click="showAutoflowModal = true" class="btn btn-secondary">
-          <i class="fas fa-plus"></i> 新增 Autoflow
-        </button>
-        <button @click="showProcessingStepModal = true" class="btn btn-success">
-          <i class="fas fa-plus"></i> 新增 Processing Step
-        </button>
-      </div>
-      <div class="toolbar-right">
-        <select @change="loadSelectedRecipeFlow" v-model="selectedRecipeId" class="form-select">
-          <option value="">選擇 Recipe 載入流程圖</option>
-          <option v-for="recipe in recipes" :key="recipe.id" :value="recipe.id">
-            {{ recipe.name }}
-          </option>
-        </select>
-        <button @click="saveFlow" class="btn btn-info">
-          <i class="fas fa-save"></i> 保存流程
-        </button>
-        <button @click="clearFlow" class="btn btn-danger">
-          <i class="fas fa-trash"></i> 清空畫布
-        </button>
-      </div>
-    </div>
-
-    <!-- 主要內容區域 -->
-    <div class="main-content">
-      <!-- 畫布容器 - 包含樹狀結構和 Drawflow -->
-      <div class="canvas-container">
-        <!-- 樹狀結構展示區域 -->
-        <div class="tree-display-area">
-          <div class="tree-header">
-            <h3 class="tree-title">結構樹</h3>
-            <div class="tree-controls">
-              <button @click="expandAll" class="btn-expand">
-                <i class="fas fa-expand-alt"></i> 展開全部
-              </button>
-              <button @click="collapseAll" class="btn-collapse">
-                <i class="fas fa-compress-alt"></i> 收起全部
-              </button>
-            </div>
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <button @click="showRecipeModal = true" class="btn btn-primary">
+              <i class="fas fa-plus"></i> 新增 Recipe
+            </button>
+            <button @click="showAutoflowModal = true" class="btn btn-secondary">
+              <i class="fas fa-plus"></i> 新增 Autoflow
+            </button>
+            <button @click="showProcessingStepModal = true" class="btn btn-success">
+              <i class="fas fa-plus"></i> 新增 Processing Step
+            </button>
           </div>
-          
-          <!-- 畫布上的樹狀結構 -->
-          <div class="canvas-tree-container">
-            <div class="canvas-tree-list">
-              <!-- Recipe 層級 -->
-              <div v-for="recipe in recipes" :key="recipe.id" class="canvas-tree-item recipe-level">
-                <div class="canvas-tree-node" @click="toggleRecipe(recipe)">
-                  <div class="canvas-tree-line-container">
-                    <div class="canvas-tree-expand-icon">
-                      <i :class="recipe.expanded ? 'fas fa-minus-square' : 'fas fa-plus-square'"></i>
-                    </div>
-                    <div class="canvas-tree-content">
-                      <div 
-                        class="canvas-component-item recipe-item"
-                        draggable="true"
-                        @dragstart="onDragStart($event, 'recipe', recipe)"
-                      >
-                        <div class="canvas-item-header">
-                          <span class="canvas-item-name">
-                            <i class="fas fa-book"></i> {{ recipe.name }}
-                          </span>
-                          <div class="canvas-item-actions">
-                            <button @click.stop="loadRecipeFlow(recipe)" class="canvas-btn-flow" title="載入流程圖">
-                              <i class="fas fa-project-diagram"></i>
-                            </button>
-                            <button @click.stop="editRecipe(recipe)" class="canvas-btn-edit" title="編輯">
-                              <i class="fas fa-edit"></i>
-                            </button>
-                          </div>
-                        </div>
-                        <div class="canvas-item-description">{{ recipe.description }}</div>
-                        <div class="canvas-item-meta">
-                          <span class="canvas-badge">{{ recipe.autoflows_count }} autoflows</span>
-                          <span class="canvas-badge">{{ recipe.recipe_steps_count }} steps</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+          <div class="toolbar-right">
+            <select @change="loadSelectedRecipeFlow" v-model="selectedRecipeId" class="form-select">
+              <option value="">選擇 Recipe 載入流程圖</option>
+              <option v-for="recipe in recipes" :key="recipe.id" :value="recipe.id">
+                {{ recipe.name }}
+              </option>
+            </select>
+            <button @click="saveFlow" class="btn btn-info">
+              <i class="fas fa-save"></i> 保存流程
+            </button>
+            <button @click="clearFlow" class="btn btn-danger">
+              <i class="fas fa-trash"></i> 清空畫布
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+          <div class="canvas-container">
+            <!-- Tree Display Area -->
+            <div class="tree-display-area">
+              <div class="tree-header">
+                <h3 class="tree-title">結構樹</h3>
+                <div class="tree-controls">
+                  <button @click="expandAll" class="btn-expand">
+                    <i class="fas fa-expand-alt"></i> 展開全部
+                  </button>
+                  <button @click="collapseAll" class="btn-collapse">
+                    <i class="fas fa-compress-alt"></i> 收起全部
+                  </button>
                 </div>
-                
-                <!-- Autoflow 層級 -->
-                <div v-if="recipe.expanded" class="canvas-tree-children">
-                  <div 
-                    v-for="(autoflow, autoflowIndex) in recipe.autoflows || []" 
-                    :key="autoflow.id" 
-                    class="canvas-tree-item autoflow-level"
-                  >
-                    <div class="canvas-tree-node" @click="toggleAutoflow(autoflow)">
+              </div>
+              
+              <div class="canvas-tree-container">
+                <div class="canvas-tree-list">
+                  <!-- Recipe Level -->
+                  <div v-for="recipe in recipes" :key="recipe.id" class="canvas-tree-item recipe-level">
+                    <div class="canvas-tree-node" @click="toggleRecipe(recipe)">
                       <div class="canvas-tree-line-container">
-                        <div class="canvas-tree-connector">
-                          <div class="canvas-vertical-line" v-if="autoflowIndex < (recipe.autoflows?.length || 0) - 1"></div>
-                          <div class="canvas-horizontal-line"></div>
-                        </div>
                         <div class="canvas-tree-expand-icon">
-                          <i :class="autoflow.expanded ? 'fas fa-minus-square' : 'fas fa-plus-square'"></i>
+                          <i :class="recipe.expanded ? 'fas fa-minus-square' : 'fas fa-plus-square'"></i>
                         </div>
                         <div class="canvas-tree-content">
                           <div 
-                            class="canvas-component-item autoflow-item"
+                            class="canvas-component-item recipe-item"
                             draggable="true"
-                            @dragstart="onDragStart($event, 'autoflow', autoflow)"
+                            @dragstart="onDragStart($event, 'recipe', recipe)"
                           >
                             <div class="canvas-item-header">
                               <span class="canvas-item-name">
-                                <i class="fas fa-project-diagram"></i> {{ autoflow.name }}
+                                <i class="fas fa-book"></i> {{ recipe.name }}
                               </span>
                               <div class="canvas-item-actions">
-                                <button @click.stop="editAutoflow(autoflow)" class="canvas-btn-edit" title="編輯">
+                                <button @click.stop="loadRecipeFlow(recipe)" class="canvas-btn-flow" title="載入流程圖">
+                                  <i class="fas fa-project-diagram"></i>
+                                </button>
+                                <button @click.stop="editRecipe(recipe)" class="canvas-btn-edit" title="編輯">
                                   <i class="fas fa-edit"></i>
                                 </button>
                               </div>
                             </div>
-                            <div class="canvas-item-description">{{ autoflow.description }}</div>
+                            <div class="canvas-item-description">{{ recipe.description }}</div>
                             <div class="canvas-item-meta">
-                              <span class="canvas-badge">{{ autoflow.processing_steps_count }} steps</span>
+                              <span class="canvas-badge">{{ recipe.autoflows_count }} autoflows</span>
+                              <span class="canvas-badge">{{ recipe.recipe_steps_count }} steps</span>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    <!-- Processing Steps 層級 -->
-                    <div v-if="autoflow.expanded" class="canvas-tree-children">
+                    <!-- Autoflow Level -->
+                    <div v-if="recipe.expanded" class="canvas-tree-children">
                       <div 
-                        v-for="(step, stepIndex) in autoflow.processing_steps || []" 
-                        :key="step.id" 
-                        class="canvas-tree-item step-level"
+                        v-for="(autoflow, autoflowIndex) in recipe.autoflows || []" 
+                        :key="autoflow.id" 
+                        class="canvas-tree-item autoflow-level"
                       >
-                        <div class="canvas-tree-node">
+                        <div class="canvas-tree-node" @click="toggleAutoflow(autoflow)">
                           <div class="canvas-tree-line-container">
                             <div class="canvas-tree-connector">
-                              <div class="canvas-vertical-line" v-if="stepIndex < (autoflow.processing_steps?.length || 0) - 1"></div>
+                              <div class="canvas-vertical-line" v-if="autoflowIndex < (recipe.autoflows?.length || 0) - 1"></div>
                               <div class="canvas-horizontal-line"></div>
                             </div>
-                            <div class="canvas-tree-leaf-icon">
-                              <i class="fas fa-circle"></i>
+                            <div class="canvas-tree-expand-icon">
+                              <i :class="autoflow.expanded ? 'fas fa-minus-square' : 'fas fa-plus-square'"></i>
                             </div>
                             <div class="canvas-tree-content">
                               <div 
-                                class="canvas-component-item step-item"
+                                class="canvas-component-item autoflow-item"
                                 draggable="true"
-                                @dragstart="onDragStart($event, 'step', step)"
+                                @dragstart="onDragStart($event, 'autoflow', autoflow)"
                               >
                                 <div class="canvas-item-header">
                                   <span class="canvas-item-name">
-                                    <i class="fas fa-cogs"></i> {{ step.name }}
+                                    <i class="fas fa-project-diagram"></i> {{ autoflow.name }}
                                   </span>
-                                  <button @click.stop="editProcessingStep(step)" class="canvas-btn-edit">
-                                    <i class="fas fa-edit"></i>
-                                  </button>
+                                  <div class="canvas-item-actions">
+                                    <button @click.stop="editAutoflow(autoflow)" class="canvas-btn-edit" title="編輯">
+                                      <i class="fas fa-edit"></i>
+                                    </button>
+                                  </div>
                                 </div>
-                                <div class="canvas-item-description">{{ step.description }}</div>
+                                <div class="canvas-item-description">{{ autoflow.description }}</div>
+                                <div class="canvas-item-meta">
+                                  <span class="canvas-badge">{{ autoflow.processing_steps_count }} steps</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <!-- Processing Steps Level -->
+                        <div v-if="autoflow.expanded" class="canvas-tree-children">
+                          <div 
+                            v-for="(step, stepIndex) in autoflow.processing_steps || []" 
+                            :key="step.id" 
+                            class="canvas-tree-item step-level"
+                          >
+                            <div class="canvas-tree-node">
+                              <div class="canvas-tree-line-container">
+                                <div class="canvas-tree-connector">
+                                  <div class="canvas-vertical-line" v-if="stepIndex < (autoflow.processing_steps?.length || 0) - 1"></div>
+                                  <div class="canvas-horizontal-line"></div>
+                                </div>
+                                <div class="canvas-tree-leaf-icon">
+                                  <i class="fas fa-circle"></i>
+                                </div>
+                                <div class="canvas-tree-content">
+                                  <div 
+                                    class="canvas-component-item step-item"
+                                    draggable="true"
+                                    @dragstart="onDragStart($event, 'step', step)"
+                                  >
+                                    <div class="canvas-item-header">
+                                      <span class="canvas-item-name">
+                                        <i class="fas fa-cogs"></i> {{ step.name }}
+                                      </span>
+                                      <button @click.stop="editProcessingStep(step)" class="canvas-btn-edit">
+                                        <i class="fas fa-edit"></i>
+                                      </button>
+                                    </div>
+                                    <div class="canvas-item-description">{{ step.description }}</div>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -178,125 +178,142 @@
                 </div>
               </div>
             </div>
+            
+            <!-- Vue Flow Canvas -->
+            <div class="vueflow-area">
+              <VueFlow 
+                v-model:nodes="nodes" 
+                v-model:edges="edges"
+                @dragover="onDragOver"
+                @drop="onDrop"
+                :fit-view-on-init="true"
+                :nodes-draggable="true"
+                :nodes-connectable="true"
+                :edge-types="edgeTypes"
+              >
+                <template #node-recipe="recipeProps">
+                  <RecipeNode v-bind="recipeProps" />
+                </template>
+                <template #node-autoflow="autoflowProps">
+                  <AutoflowNode v-bind="autoflowProps" />
+                </template>
+                <template #node-step="stepProps">
+                  <StepNode v-bind="stepProps" />
+                </template>
+              </VueFlow>
+            </div>
           </div>
         </div>
-        
-        <!-- Drawflow 畫布 -->
-        <div class="drawflow-area">
-          <div id="drawflow" class="drawflow-canvas" @drop="onDrop" @dragover="onDragOver"></div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Recipe 新增/編輯模態框 -->
-    <div v-if="showRecipeModal" class="modal-overlay" @click="showRecipeModal = false">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>{{ editingRecipe ? '編輯 Recipe' : '新增 Recipe' }}</h3>
-          <button @click="showRecipeModal = false" class="btn-close">&times;</button>
+        <!-- Recipe Modal -->
+        <div v-if="showRecipeModal" class="modal-overlay" @click="showRecipeModal = false">
+          <div class="modal-content" @click.stop>
+            <div class="modal-header">
+              <h3>{{ editingRecipe ? '編輯 Recipe' : '新增 Recipe' }}</h3>
+              <button @click="showRecipeModal = false" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+              <form @submit.prevent="submitRecipe">
+                <div class="form-group">
+                  <label>名稱</label>
+                  <input v-model="recipeForm.name" type="text" class="form-control" required>
+                </div>
+                <div class="form-group">
+                  <label>描述</label>
+                  <textarea v-model="recipeForm.description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>狀態</label>
+                  <select v-model="recipeForm.status" class="form-control">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+                <div class="form-actions">
+                  <button type="button" @click="showRecipeModal = false" class="btn btn-secondary">取消</button>
+                  <button type="submit" class="btn btn-primary">{{ editingRecipe ? '更新' : '創建' }}</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <form @submit.prevent="submitRecipe">
-            <div class="form-group">
-              <label>名稱</label>
-              <input v-model="recipeForm.name" type="text" class="form-control" required>
-            </div>
-            <div class="form-group">
-              <label>描述</label>
-              <textarea v-model="recipeForm.description" class="form-control" rows="3"></textarea>
-            </div>
-            <div class="form-group">
-              <label>狀態</label>
-              <select v-model="recipeForm.status" class="form-control">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div class="form-actions">
-              <button type="button" @click="showRecipeModal = false" class="btn btn-secondary">取消</button>
-              <button type="submit" class="btn btn-primary">{{ editingRecipe ? '更新' : '創建' }}</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
 
-    <!-- Autoflow 新增/編輯模態框 -->
-    <div v-if="showAutoflowModal" class="modal-overlay" @click="showAutoflowModal = false">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>{{ editingAutoflow ? '編輯 Autoflow' : '新增 Autoflow' }}</h3>
-          <button @click="showAutoflowModal = false" class="btn-close">&times;</button>
+        <!-- Autoflow Modal -->
+        <div v-if="showAutoflowModal" class="modal-overlay" @click="showAutoflowModal = false">
+          <div class="modal-content" @click.stop>
+            <div class="modal-header">
+              <h3>{{ editingAutoflow ? '編輯 Autoflow' : '新增 Autoflow' }}</h3>
+              <button @click="showAutoflowModal = false" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+              <form @submit.prevent="submitAutoflow">
+                <div class="form-group">
+                  <label>關聯的 Recipe</label>
+                  <select v-model="autoflowForm.recipe_id" class="form-control">
+                    <option value="">選擇 Recipe</option>
+                    <option v-for="recipe in recipes" :key="recipe.id" :value="recipe.id">
+                      {{ recipe.name }}
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>名稱</label>
+                  <input v-model="autoflowForm.name" type="text" class="form-control" required>
+                </div>
+                <div class="form-group">
+                  <label>描述</label>
+                  <textarea v-model="autoflowForm.description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>狀態</label>
+                  <select v-model="autoflowForm.status" class="form-control">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+                <div class="form-actions">
+                  <button type="button" @click="showAutoflowModal = false" class="btn btn-secondary">取消</button>
+                  <button type="submit" class="btn btn-primary">{{ editingAutoflow ? '更新' : '創建' }}</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <form @submit.prevent="submitAutoflow">
-            <div class="form-group">
-              <label>關聯的 Recipe</label>
-              <select v-model="autoflowForm.recipe_id" class="form-control">
-                <option value="">選擇 Recipe</option>
-                <option v-for="recipe in recipes" :key="recipe.id" :value="recipe.id">
-                  {{ recipe.name }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>名稱</label>
-              <input v-model="autoflowForm.name" type="text" class="form-control" required>
-            </div>
-            <div class="form-group">
-              <label>描述</label>
-              <textarea v-model="autoflowForm.description" class="form-control" rows="3"></textarea>
-            </div>
-            <div class="form-group">
-              <label>狀態</label>
-              <select v-model="autoflowForm.status" class="form-control">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div class="form-actions">
-              <button type="button" @click="showAutoflowModal = false" class="btn btn-secondary">取消</button>
-              <button type="submit" class="btn btn-primary">{{ editingAutoflow ? '更新' : '創建' }}</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
 
-    <!-- Processing Step 新增/編輯模態框 -->
-    <div v-if="showProcessingStepModal" class="modal-overlay" @click="showProcessingStepModal = false">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>{{ editingProcessingStep ? '編輯 Processing Step' : '新增 Processing Step' }}</h3>
-          <button @click="showProcessingStepModal = false" class="btn-close">&times;</button>
+        <!-- Processing Step Modal -->
+        <div v-if="showProcessingStepModal" class="modal-overlay" @click="showProcessingStepModal = false">
+          <div class="modal-content" @click.stop>
+            <div class="modal-header">
+              <h3>{{ editingProcessingStep ? '編輯 Processing Step' : '新增 Processing Step' }}</h3>
+              <button @click="showProcessingStepModal = false" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+              <form @submit.prevent="submitProcessingStep">
+                <div class="form-group">
+                  <label>關聯的 Autoflow</label>
+                  <select v-model="processingStepForm.autoflow_id" class="form-control">
+                    <option value="">選擇 Autoflow</option>
+                    <option v-for="autoflow in autoflows" :key="autoflow.id" :value="autoflow.id">
+                      {{ autoflow.name }}
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>名稱</label>
+                  <input v-model="processingStepForm.name" type="text" class="form-control" required>
+                </div>
+                <div class="form-group">
+                  <label>描述</label>
+                  <textarea v-model="processingStepForm.description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                  <button type="button" @click="showProcessingStepModal = false" class="btn btn-secondary">取消</button>
+                  <button type="submit" class="btn btn-primary">{{ editingProcessingStep ? '更新' : '創建' }}</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <form @submit.prevent="submitProcessingStep">
-            <div class="form-group">
-              <label>關聯的 Autoflow</label>
-              <select v-model="processingStepForm.autoflow_id" class="form-control">
-                <option value="">選擇 Autoflow</option>
-                <option v-for="autoflow in autoflows" :key="autoflow.id" :value="autoflow.id">
-                  {{ autoflow.name }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>名稱</label>
-              <input v-model="processingStepForm.name" type="text" class="form-control" required>
-            </div>
-            <div class="form-group">
-              <label>描述</label>
-              <textarea v-model="processingStepForm.description" class="form-control" rows="3"></textarea>
-            </div>
-            <div class="form-actions">
-              <button type="button" @click="showProcessingStepModal = false" class="btn btn-secondary">取消</button>
-              <button type="submit" class="btn btn-primary">{{ editingProcessingStep ? '更新' : '創建' }}</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
       </div>
     </main>
   </div>
@@ -308,16 +325,25 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
-import Drawflow from 'drawflow';
+import { VueFlow, useVueFlow, type Node, type Edge } from '@vue-flow/core';
 import axios from 'axios';
 import LeftMenu from '@/components/LeftMenu.vue';
+import RecipeNode from '@/components/RecipeNode.vue';
+import AutoflowNode from '@/components/AutoflowNode.vue';
+import StepNode from '@/components/StepNode.vue';
 
-// 路由和認證
+// Vue Flow setup
+const { addNodes, addEdges, setNodes, setEdges } = useVueFlow();
+const nodes = ref<Node[]>([]);
+const edges = ref<Edge[]>([]);
+const edgeTypes = { default: 'bezier' };
+
+// Authentication and routing
 const router = useRouter();
 const authToken = ref(localStorage.getItem('token') || '');
 const isAuthenticated = ref(false);
 
-// 用戶資料
+// User data
 const userInfo = ref<{
   id: number;
   account: string;
@@ -326,7 +352,7 @@ const userInfo = ref<{
   avatar?: string;
 } | null>(null);
 
-// 菜單項
+// Menu items
 const menuItems = ref([
   { label: 'Dashboard', link: '/dashboard', icon: 'fas fa-tachometer-alt', active: false },
   { label: 'Automation Control', link: '/automation', icon: 'fas fa-robot', active: true },
@@ -335,29 +361,29 @@ const menuItems = ref([
   { label: 'Setting', link: '/setting', icon: 'fas fa-cog', active: false },
 ]);
 
-// 響應式數據
+// Reactive data
 const recipes = ref<any[]>([]);
 const autoflows = ref<any[]>([]);
 const processingSteps = ref<any[]>([]);
 const selectedRecipeId = ref('');
 
-// 組件庫狀態管理
+// Component library state
 const selectedRecipe = ref<any>(null);
 const selectedAutoflow = ref<any>(null);
 const currentAutoflows = ref<any[]>([]);
 const currentProcessingSteps = ref<any[]>([]);
 
-// 模態框狀態
+// Modal states
 const showRecipeModal = ref(false);
 const showAutoflowModal = ref(false);
 const showProcessingStepModal = ref(false);
 
-// 編輯狀態
+// Editing states
 const editingRecipe = ref<any>(null);
 const editingAutoflow = ref<any>(null);
 const editingProcessingStep = ref<any>(null);
 
-// 表單數據
+// Form data
 const recipeForm = ref({
   name: '',
   description: '',
@@ -379,10 +405,7 @@ const processingStepForm = ref({
   description: ''
 });
 
-// Drawflow 實例
-let editor: any = null;
-
-// 認證檢查
+// Authentication check
 const checkAuth = async () => {
   if (!authToken.value) {
     router.push('/');
@@ -395,8 +418,6 @@ const checkAuth = async () => {
     if (response.status === 200) {
       isAuthenticated.value = true;
       const userData = response.data.data;
-      
-      // 更新用戶資料給 LeftMenu 使用
       userInfo.value = {
         id: userData.id,
         account: userData.account,
@@ -412,7 +433,7 @@ const checkAuth = async () => {
   }
 };
 
-// 載入資料
+// Load data
 const loadData = async () => {
   try {
     const [recipesRes, autoflowsRes, stepsRes] = await Promise.all([
@@ -435,19 +456,7 @@ const loadData = async () => {
   }
 };
 
-// 初始化 Drawflow
-const initDrawflow = () => {
-  const container = document.getElementById('drawflow');
-  if (container) {
-    editor = new Drawflow(container);
-    editor.reroute = true;
-    editor.reroute_fix_curvature = true;
-    editor.force_first_input = false;
-    editor.start();
-  }
-};
-
-// 拖拽相關
+// Drag and drop
 const onDragStart = (event: DragEvent, type: string, item: any) => {
   event.dataTransfer?.setData('text/plain', JSON.stringify({ type, item }));
 };
@@ -461,7 +470,7 @@ const onDrop = (event: DragEvent) => {
   const data = JSON.parse(event.dataTransfer?.getData('text/plain') || '{}');
   
   if (data.type && data.item) {
-    // 檢查拖拽限制
+    // Check drag restrictions
     if (data.type === 'autoflow' && selectedRecipe.value && data.item.recipe_id !== selectedRecipe.value.id) {
       alert('只能添加屬於當前選擇的 Recipe 的 Autoflows');
       return;
@@ -477,59 +486,18 @@ const onDrop = (event: DragEvent) => {
 };
 
 const addNodeToCanvas = (type: string, item: any, x: number, y: number) => {
-  let nodeContent = '';
-  let nodeClass = '';
+  const node: Node = {
+    id: `${type}_${item.id}`,
+    type,
+    position: { x, y },
+    data: { ...item },
+    class: `${type}-node`,
+  };
   
-  switch (type) {
-    case 'recipe':
-      nodeContent = `
-        <div class="node-header recipe-node">
-          <i class="fas fa-book"></i>
-          <span class="node-title">${item.name}</span>
-        </div>
-        <div class="node-content">
-          <p>${item.description || ''}</p>
-          <div class="node-meta">
-            <span class="badge">${item.autoflows_count} autoflows</span>
-            <span class="badge">${item.recipe_steps_count} steps</span>
-          </div>
-        </div>
-      `;
-      nodeClass = 'recipe-node';
-      break;
-    case 'autoflow':
-      nodeContent = `
-        <div class="node-header autoflow-node">
-          <i class="fas fa-project-diagram"></i>
-          <span class="node-title">${item.name}</span>
-        </div>
-        <div class="node-content">
-          <p>${item.description || ''}</p>
-          <div class="node-meta">
-            <span class="badge">${item.processing_steps_count} steps</span>
-          </div>
-        </div>
-      `;
-      nodeClass = 'autoflow-node';
-      break;
-    case 'step':
-      nodeContent = `
-        <div class="node-header step-node">
-          <i class="fas fa-cogs"></i>
-          <span class="node-title">${item.name}</span>
-        </div>
-        <div class="node-content">
-          <p>${item.description || ''}</p>
-        </div>
-      `;
-      nodeClass = 'step-node';
-      break;
-  }
-  
-  editor.addNode(type, 1, 1, x, y, nodeClass, { item_id: item.id }, nodeContent);
+  addNodes([node]);
 };
 
-// Recipe 相關操作
+// Recipe operations
 const editRecipe = (recipe: any) => {
   editingRecipe.value = recipe;
   recipeForm.value = { ...recipe };
@@ -557,7 +525,7 @@ const submitRecipe = async () => {
   }
 };
 
-// Autoflow 相關操作
+// Autoflow operations
 const editAutoflow = (autoflow: any) => {
   editingAutoflow.value = autoflow;
   autoflowForm.value = { ...autoflow };
@@ -585,7 +553,7 @@ const submitAutoflow = async () => {
   }
 };
 
-// Processing Step 相關操作
+// Processing Step operations
 const editProcessingStep = (step: any) => {
   editingProcessingStep.value = step;
   processingStepForm.value = { ...step };
@@ -613,31 +581,31 @@ const submitProcessingStep = async () => {
   }
 };
 
-// 畫布操作
+// Canvas operations
 const saveFlow = () => {
-  const flowData = editor.export();
+  const flowData = { nodes: nodes.value, edges: edges.value };
   console.log('Flow data:', flowData);
-  // 這裡可以實現保存到後端的邏輯
+  // Implement backend save logic here
 };
 
 const clearFlow = () => {
-  editor.clear();
+  setNodes([]);
+  setEdges([]);
 };
 
-// 載入 Recipe 流程圖
+// Load Recipe flow
 const loadRecipeFlow = (recipe: any) => {
-  // 清空畫布
-  editor.clear();
+  setNodes([]);
+  setEdges([]);
   
   if (!recipe.autoflows || recipe.autoflows.length === 0) {
     console.log('此 Recipe 沒有 Autoflows');
     return;
   }
   
-  // 更新組件庫狀態
   selectRecipe(recipe);
   
-  // 計算布局參數
+  // Layout parameters
   const recipeX = 50;
   const recipeY = 50;
   const autoflowStartY = 250;
@@ -645,112 +613,82 @@ const loadRecipeFlow = (recipe: any) => {
   const stepStartY = 450;
   const stepSpacing = 200;
   
-  // 創建 Recipe 節點
-  const recipeNodeId = addRecipeNode(recipe, recipeX, recipeY);
+  // Create Recipe node
+  const recipeNode: Node = {
+    id: `recipe_${recipe.id}`,
+    type: 'recipe',
+    position: { x: recipeX, y: recipeY },
+    data: { ...recipe },
+    class: 'recipe-node',
+  };
   
-  // 為每個 Autoflow 創建節點並連接
+  const newNodes: Node[] = [recipeNode];
+  const newEdges: Edge[] = [];
+  
+  // Create Autoflow nodes and edges
   recipe.autoflows.forEach((autoflow: any, autoflowIndex: number) => {
     const autoflowX = recipeX + (autoflowIndex * autoflowSpacing);
-    const autoflowNodeId = addAutoflowNode(autoflow, autoflowX, autoflowStartY);
+    const autoflowNode: Node = {
+      id: `autoflow_${autoflow.id}`,
+      type: 'autoflow',
+      position: { x: autoflowX, y: autoflowStartY },
+      data: { ...autoflow },
+      class: 'autoflow-node',
+    };
     
-    // 連接 Recipe 到 Autoflow
-    editor.addConnection(recipeNodeId, autoflowNodeId, 'output_1', 'input_1');
+    newNodes.push(autoflowNode);
+    newEdges.push({
+      id: `e-recipe_${recipe.id}-autoflow_${autoflow.id}`,
+      source: recipeNode.id,
+      target: autoflowNode.id,
+      type: 'bezier',
+    });
     
-    // 為每個 Processing Step 創建節點並連接
+    // Create Processing Step nodes and edges
     if (autoflow.processing_steps && autoflow.processing_steps.length > 0) {
-      let previousStepNodeId = autoflowNodeId;
+      let previousNodeId = autoflowNode.id;
       
       autoflow.processing_steps.forEach((step: any, stepIndex: number) => {
         const stepX = autoflowX + (stepIndex * stepSpacing) - ((autoflow.processing_steps.length - 1) * stepSpacing / 2);
         const stepY = stepStartY + (stepIndex * 150);
-        const stepNodeId = addProcessingStepNode(step, stepX, stepY);
+        const stepNode: Node = {
+          id: `step_${step.id}`,
+          type: 'step',
+          position: { x: stepX, y: stepY },
+          data: { ...step },
+          class: 'step-node',
+        };
         
-        // 連接到上一個節點（可能是 autoflow 或前一個 step）
-        if (stepIndex === 0) {
-          // 第一個 step 連接到 autoflow
-          editor.addConnection(autoflowNodeId, stepNodeId, 'output_1', 'input_1');
-        } else {
-          // 其他 steps 連接到前一個 step
-          const prevStepNodeId = `step_${autoflow.processing_steps[stepIndex - 1].id}`;
-          editor.addConnection(prevStepNodeId, stepNodeId, 'output_1', 'input_1');
-        }
+        newNodes.push(stepNode);
+        
+        newEdges.push({
+          id: `e-${previousNodeId}-step_${step.id}`,
+          source: previousNodeId,
+          target: stepNode.id,
+          type: 'bezier',
+        });
+        
+        previousNodeId = stepNode.id;
       });
     }
   });
   
-  // 重置下拉選單
+  addNodes(newNodes);
+  addEdges(newEdges);
   selectedRecipeId.value = '';
 };
 
-// 添加 Recipe 節點到畫布
-const addRecipeNode = (recipe: any, x: number, y: number) => {
-  const nodeId = `recipe_${recipe.id}`;
-  const nodeContent = `
-    <div class="node-header recipe-node">
-      <i class="fas fa-book"></i>
-      <span class="node-title">${recipe.name}</span>
-    </div>
-    <div class="node-content">
-      <p class="node-description">${recipe.description || ''}</p>
-      <div class="node-meta">
-        <span class="badge">${recipe.autoflows_count || recipe.autoflows?.length || 0} autoflows</span>
-        <span class="badge">${recipe.recipe_steps_count || recipe.recipe_steps?.length || 0} steps</span>
-      </div>
-    </div>
-  `;
-  
-  editor.addNode(nodeId, 0, 1, x, y, 'recipe-node', { item_id: recipe.id, type: 'recipe' }, nodeContent);
-  return nodeId;
-};
-
-// 添加 Autoflow 節點到畫布
-const addAutoflowNode = (autoflow: any, x: number, y: number) => {
-  const nodeId = `autoflow_${autoflow.id}`;
-  const nodeContent = `
-    <div class="node-header autoflow-node">
-      <i class="fas fa-project-diagram"></i>
-      <span class="node-title">${autoflow.name}</span>
-    </div>
-    <div class="node-content">
-      <p class="node-description">${autoflow.description || ''}</p>
-      <div class="node-meta">
-        <span class="badge">${autoflow.processing_steps_count || autoflow.processing_steps?.length || 0} steps</span>
-      </div>
-    </div>
-  `;
-  
-  editor.addNode(nodeId, 1, 1, x, y, 'autoflow-node', { item_id: autoflow.id, type: 'autoflow' }, nodeContent);
-  return nodeId;
-};
-
-// 添加 Processing Step 節點到畫布
-const addProcessingStepNode = (step: any, x: number, y: number) => {
-  const nodeId = `step_${step.id}`;
-  const nodeContent = `
-    <div class="node-header step-node">
-      <i class="fas fa-cogs"></i>
-      <span class="node-title">${step.name}</span>
-    </div>
-    <div class="node-content">
-      <p class="node-description">${step.description || ''}</p>
-    </div>
-  `;
-  
-  editor.addNode(nodeId, 1, 1, x, y, 'step-node', { item_id: step.id, type: 'step' }, nodeContent);
-  return nodeId;
-};
-
-// 從下拉選單載入 Recipe 流程圖
+// Load selected recipe flow from dropdown
 const loadSelectedRecipeFlow = () => {
   if (!selectedRecipeId.value) return;
   
-  const recipe = recipes.value.find((r: { id: number; }) => r.id === parseInt(selectedRecipeId.value));
+  const recipe = recipes.value.find((r: { id: number }) => r.id === parseInt(selectedRecipeId.value));
   if (recipe) {
     loadRecipeFlow(recipe);
   }
 };
 
-// 組件庫導航函數
+// Component library navigation
 const selectRecipe = (recipe: any) => {
   selectedRecipe.value = recipe;
   selectedAutoflow.value = null;
@@ -775,7 +713,7 @@ const resetToAutoflows = () => {
   currentProcessingSteps.value = [];
 };
 
-// 樹狀結構展開/收起功能
+// Tree expand/collapse
 const toggleRecipe = (recipe: any) => {
   recipe.expanded = !recipe.expanded;
 };
@@ -785,7 +723,7 @@ const toggleAutoflow = (autoflow: any) => {
 };
 
 const expandAll = () => {
-  recipes.value.forEach((recipe: { expanded: boolean; autoflows: any[]; }) => {
+  recipes.value.forEach((recipe: { expanded: boolean; autoflows: any[] }) => {
     recipe.expanded = true;
     if (recipe.autoflows) {
       recipe.autoflows.forEach((autoflow: any) => {
@@ -796,7 +734,7 @@ const expandAll = () => {
 };
 
 const collapseAll = () => {
-  recipes.value.forEach((recipe: { expanded: boolean; autoflows: any[]; }) => {
+  recipes.value.forEach((recipe: { expanded: boolean; autoflows: any[] }) => {
     recipe.expanded = false;
     if (recipe.autoflows) {
       recipe.autoflows.forEach((autoflow: any) => {
@@ -806,18 +744,23 @@ const collapseAll = () => {
   });
 };
 
-// 生命週期
+// Lifecycle
 onMounted(async () => {
   await checkAuth();
   if (isAuthenticated.value) {
     await loadData();
     await nextTick();
-    initDrawflow();
   }
 });
 </script>
 
+<style>
+@import '@vue-flow/core/dist/style.css';
+@import '@vue-flow/core/dist/theme-default.css';
+</style>
+
 <style scoped>
+
 .automation-container {
   @apply flex flex-col bg-gray-50 h-full;
 }
@@ -1006,12 +949,8 @@ onMounted(async () => {
   @apply mb-1;
 }
 
-.drawflow-area {
+.vueflow-area {
   @apply flex-1 relative;
-}
-
-.drawflow-canvas {
-  @apply w-full h-full;
 }
 
 .modal-overlay {
@@ -1054,69 +993,28 @@ onMounted(async () => {
   @apply flex justify-end space-x-2 mt-6;
 }
 
-/* Drawflow 節點樣式 */
+/* Vue Flow node styles */
 :deep(.recipe-node) {
-  @apply bg-blue-50 border-blue-300;
+  @apply bg-blue-50 border-blue-300 rounded-lg shadow-md min-w-48 p-3;
 }
 
 :deep(.autoflow-node) {
-  @apply bg-green-50 border-green-300;
+  @apply bg-green-50 border-green-300 rounded-lg shadow-md min-w-48 p-3;
 }
 
 :deep(.step-node) {
-  @apply bg-purple-50 border-purple-300;
+  @apply bg-purple-50 border-purple-300 rounded-lg shadow-md min-w-48 p-3;
 }
 
-:deep(.node-header) {
-  @apply flex items-center space-x-2 p-2 border-b;
-}
-
-:deep(.node-title) {
-  @apply font-medium text-gray-800;
-}
-
-:deep(.node-content) {
-  @apply p-3;
-}
-
-:deep(.node-description) {
-  @apply text-sm text-gray-600 mb-2;
-}
-
-:deep(.node-meta) {
-  @apply flex space-x-2 mt-2;
-}
-
-:deep(.node-meta .badge) {
-  @apply px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700;
-}
-
-/* Drawflow 基本樣式 */
-:deep(.drawflow) {
-  @apply bg-gray-100;
-}
-
-:deep(.drawflow .drawflow-node) {
-  @apply bg-white rounded-lg shadow-md border-2 min-w-48;
-}
-
-:deep(.drawflow .drawflow-node.selected) {
+:deep(.vue-flow__node.selected) {
   @apply border-blue-500;
 }
 
-:deep(.drawflow .connection) {
+:deep(.vue-flow__edge) {
   @apply stroke-2;
 }
 
-:deep(.drawflow .connection .main-path) {
+:deep(.vue-flow__edge-path) {
   @apply stroke-blue-500;
-}
-
-:deep(.drawflow .connection .point) {
-  @apply fill-blue-500;
-}
-
-:deep(.drawflow .connection .point.selected) {
-  @apply fill-red-500;
 }
 </style>
