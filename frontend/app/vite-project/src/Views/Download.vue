@@ -160,7 +160,7 @@ export default defineComponent({
 
         const totalPages = computed(() => Math.ceil(data.value.length / entries.value));
         const filteredData = computed(() =>
-            data.value.filter((item) =>
+            data.value.filter((item: { userName: string; }) =>
                 item.userName.toLowerCase().includes(search.value.toLowerCase())
             )
         );

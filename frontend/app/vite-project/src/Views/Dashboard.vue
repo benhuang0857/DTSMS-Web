@@ -136,7 +136,7 @@ export default defineComponent({
         const addFileToQueue = (files: File[]) => {
             files.forEach(file => {
                 const alreadyExists = fileQueue.value.some(
-                    item => item.file.name === file.name
+                    (item: { file: { name: string; }; }) => item.file.name === file.name
                 );
 
                 if (alreadyExists) {

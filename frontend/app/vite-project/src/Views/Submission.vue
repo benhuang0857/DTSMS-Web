@@ -166,7 +166,7 @@ export default defineComponent({
 
         // 過濾數據（基於搜索）
         const filteredData = computed(() =>
-            data.value.filter((item) =>
+            data.value.filter((item: { uploaded_file_name: string; step_name: string; tracking_id: { toString: () => string; }; }) =>
                 item.uploaded_file_name?.toLowerCase().includes(search.value.toLowerCase()) ||
                 item.step_name?.toLowerCase().includes(search.value.toLowerCase()) ||
                 item.tracking_id?.toString().toLowerCase().includes(search.value.toLowerCase())

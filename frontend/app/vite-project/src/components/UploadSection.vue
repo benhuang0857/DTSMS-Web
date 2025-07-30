@@ -148,10 +148,10 @@ export default defineComponent({
         const localUnzipPassword = ref(props.unzip_password);
         const collapsed = ref(false);
 
-        watch(localFileName, val => emit('update:file_name', val));
-        watch(localTicketCode, val => emit('update:ticket_code', val));
-        watch(localDescription, val => emit('update:description', val));
-        watch(localUnzipPassword, val => emit('update:unzip_password', val));
+        watch(localFileName, (val: any) => emit('update:file_name', val));
+        watch(localTicketCode, (val: any) => emit('update:ticket_code', val));
+        watch(localDescription, (val: any) => emit('update:description', val));
+        watch(localUnzipPassword, (val: any) => emit('update:unzip_password', val));
 
         return { localFileName, localTicketCode, localDescription, collapsed, localUnzipPassword };
     }

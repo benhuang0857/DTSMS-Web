@@ -744,7 +744,7 @@ const addProcessingStepNode = (step: any, x: number, y: number) => {
 const loadSelectedRecipeFlow = () => {
   if (!selectedRecipeId.value) return;
   
-  const recipe = recipes.value.find(r => r.id === parseInt(selectedRecipeId.value));
+  const recipe = recipes.value.find((r: { id: number; }) => r.id === parseInt(selectedRecipeId.value));
   if (recipe) {
     loadRecipeFlow(recipe);
   }
@@ -785,7 +785,7 @@ const toggleAutoflow = (autoflow: any) => {
 };
 
 const expandAll = () => {
-  recipes.value.forEach(recipe => {
+  recipes.value.forEach((recipe: { expanded: boolean; autoflows: any[]; }) => {
     recipe.expanded = true;
     if (recipe.autoflows) {
       recipe.autoflows.forEach((autoflow: any) => {
@@ -796,7 +796,7 @@ const expandAll = () => {
 };
 
 const collapseAll = () => {
-  recipes.value.forEach(recipe => {
+  recipes.value.forEach((recipe: { expanded: boolean; autoflows: any[]; }) => {
     recipe.expanded = false;
     if (recipe.autoflows) {
       recipe.autoflows.forEach((autoflow: any) => {
