@@ -1,6 +1,6 @@
 <template>
     <div class="flex h-screen">
-        <LeftMenu :menuItems="menuItems" />
+        <LeftMenu :menuItems="menuItems" :userInfo="userInfo" />
         <main class="flex-1 p-6">
             <!-- 控制區域 -->
             <div class="flex justify-between items-center mb-4">
@@ -81,6 +81,7 @@
 import { defineComponent, ref, computed, onMounted } from "vue";
 import LeftMenu from '@/components/LeftMenu.vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
     name: "TablePage",
@@ -88,11 +89,12 @@ export default defineComponent({
         LeftMenu,
     },
     setup() {
+        const router = useRouter();
         const menuItems = ref([
-            { label: 'Dashboard', link: '/dashboard', icon: 'fas fa-tachometer-alt', active: true },
+            { label: 'Dashboard', link: '/dashboard', icon: 'fas fa-tachometer-alt', active: false },
             { label: 'Automation Control', link: '/automation', icon: 'fas fa-robot', active: false },
             { label: 'Download History', link: '/downloads', icon: 'fas fa-download', active: false },
-            { label: 'Submission', link: '/submissions', icon: 'fas fa-upload', active: false },
+            { label: 'Submission', link: '/submissions', icon: 'fas fa-upload', active: true },
             { label: 'Setting', link: '/setting', icon: 'fas fa-cog', active: false },
         ]);
 
@@ -100,6 +102,44 @@ export default defineComponent({
         const search = ref("");
         const currentPage = ref(1);
         const data = ref<any[]>([]); // 儲存從 API 獲取的數據
+        
+        const userInfo = ref<{
+            id: number;
+            account: string;
+            email: string;
+            real_name?: string;
+            avatar?: string;
+        } | null>(null);
+
+        // 驗證身份並獲取用戶資料
+        const checkAuth = async () => {
+            const authToken = localStorage.getItem('token');
+            if (!authToken) {
+                router.push('/');
+                return;
+            }
+            try {
+                const response = await axios.get('http://172.31.176.1:8000/api/auth/verify', {
+                    headers: { Authorization: `Bearer ${authToken}` }
+                });
+                if (response.status === 200) {
+                    const userData = response.data.data;
+                    
+                    // 更新用戶資料給 LeftMenu 使用
+                    userInfo.value = {
+                        id: userData.id,
+                        account: userData.account,
+                        email: userData.email,
+                        real_name: userData.real_name,
+                        avatar: userData.avatar,
+                    };
+                }
+            } catch (error) {
+                console.error('Token verification failed:', error);
+                localStorage.removeItem('token');
+                router.push('/');
+            }
+        };
 
         // 從後端獲取數據
         const fetchData = async () => {
@@ -115,8 +155,9 @@ export default defineComponent({
             }
         };
 
-        // 在組件掛載時獲取數據
+        // 在組件掛載時獲取數據和驗證身份
         onMounted(() => {
+            checkAuth();
             fetchData();
         });
 
@@ -175,6 +216,7 @@ export default defineComponent({
 
         return {
             menuItems,
+            userInfo,
             entries,
             search,
             currentPage,

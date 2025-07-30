@@ -1,0 +1,25 @@
+{
+    "name": "@types/drawflow",
+    "version": "0.0.12",
+    "description": "TypeScript definitions for drawflow",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/drawflow",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Benjamin Maisonneuve",
+            "githubUsername": "BobBDE",
+            "url": "https://github.com/BobBDE"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/drawflow"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "typesPublisherContentHash": "ef470ce4442d83543a8474c6eaaff81d9c79a5d12e3147142cf1816f78e2bc98",
+    "typeScriptVersion": "4.8"
+}

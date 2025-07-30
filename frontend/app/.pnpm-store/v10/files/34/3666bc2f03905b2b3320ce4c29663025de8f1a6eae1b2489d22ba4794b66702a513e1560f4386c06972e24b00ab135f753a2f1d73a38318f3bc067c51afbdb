@@ -1,0 +1,15 @@
+# Installation
+> `npm install --save @types/drawflow`
+
+# Summary
+This package contains type definitions for drawflow (https://github.com/jerosoler/Drawflow).
+
+# Details
+Files were exported from https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/drawflow.
+
+### Additional Details
+ * Last updated: Mon, 01 Jul 2024 07:35:52 GMT
+ * Dependencies: none
+
+# Credits
+These definitions were written by [Benjamin Maisonneuve](https://github.com/BobBDE).

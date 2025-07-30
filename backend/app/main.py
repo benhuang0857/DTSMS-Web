@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 from routers import auth, users, roles, web_settings, libraries, tickets, uploaded_files, file_trackings, autoflows, recipes, processing_steps
 
 app = FastAPI()
@@ -24,6 +26,10 @@ app.include_router(file_trackings.router, prefix="/api/file-trackings", tags=["f
 app.include_router(autoflows.router, prefix="/api/autoflows", tags=["autoflows"])
 app.include_router(recipes.router, prefix="/api/recipes", tags=["recipes"])
 app.include_router(processing_steps.router, prefix="/api/processing-steps", tags=["processing-steps"])
+
+# 確保uploads目錄存在並添加靜態文件服務
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.get("/")
 def read_root():

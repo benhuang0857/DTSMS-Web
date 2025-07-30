@@ -2,10 +2,10 @@
     <aside class="bg-gray-800 text-gray-300 w-60 min-h-screen flex flex-col">
         <!-- 用戶信息 -->
         <div class="flex items-center px-4 py-6">
-            <img src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fG1hbiUyMGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D"
+            <img :src="getAvatarUrl(userInfo?.avatar) || defaultAvatar"
                 alt="User Image" class="w-12 h-12 rounded-full mr-4" />
             <div>
-                <p class="text-lg font-semibold">Alexander Pierce</p>
+                <p class="text-lg font-semibold">{{ userInfo?.real_name || userInfo?.account || 'User' }}</p>
             </div>
         </div>
 
@@ -36,6 +36,15 @@ interface MenuItem {
     active: boolean;
 }
 
+// 定義用戶信息類型
+interface UserInfo {
+    id: number;
+    account: string;
+    email: string;
+    real_name?: string;
+    avatar?: string;
+}
+
 export default defineComponent({
     name: 'LeftMenu',
     props: {
@@ -43,6 +52,26 @@ export default defineComponent({
             type: Array as PropType<MenuItem[]>,
             required: true,
         },
+        userInfo: {
+            type: Object as PropType<UserInfo | null>,
+            default: null,
+        },
+    },
+    setup() {
+        const defaultAvatar = "https://images.unsplash.com/photo-1633332755192-727a05c4013d?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fG1hbiUyMGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D";
+        
+        const getAvatarUrl = (avatarPath: string | null | undefined) => {
+            if (!avatarPath) return null;
+            // 如果已經是完整URL，直接返回
+            if (avatarPath.startsWith('http')) return avatarPath;
+            // 否則加上後端基礎URL
+            return `http://172.31.176.1:8000/${avatarPath}`;
+        };
+
+        return {
+            defaultAvatar,
+            getAvatarUrl,
+        };
     },
 });
 </script>

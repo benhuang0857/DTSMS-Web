@@ -1,6 +1,6 @@
 <template>
     <div class="flex min-h-screen" v-if="isAuthenticated">
-        <LeftMenu :menuItems="menuItems" />
+        <LeftMenu :menuItems="menuItems" :userInfo="userInfo" />
 
         <main class="flex-1 flex flex-col">
             <div class="dashboard-container flex-1 p-10px">
@@ -85,6 +85,14 @@ export default defineComponent({
         const isAuthenticated = ref(false);
         const uploadedFiles = ref<string[]>([]);
         const userId = ref<number | null>(null);
+        
+        const userInfo = ref<{
+            id: number;
+            account: string;
+            email: string;
+            real_name?: string;
+            avatar?: string;
+        } | null>(null);
         const fileQueue = ref<{ 
             id: string; 
             file: File; 
@@ -106,7 +114,17 @@ export default defineComponent({
                 });
                 if (response.status === 200) {
                     isAuthenticated.value = true;
-                    userId.value = response.data.data.id || null;
+                    const userData = response.data.data;
+                    userId.value = userData.id || null;
+                    
+                    // 更新用戶資料給 LeftMenu 使用
+                    userInfo.value = {
+                        id: userData.id,
+                        account: userData.account,
+                        email: userData.email,
+                        real_name: userData.real_name,
+                        avatar: userData.avatar,
+                    };
                 }
             } catch (error) {
                 console.error('Token verification failed:', error);
@@ -205,6 +223,7 @@ export default defineComponent({
             uploadedFiles,
             fileQueue,
             userId,
+            userInfo,
             dialogVisible,
             dialogTitle,
             dialogMessage,

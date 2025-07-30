@@ -19,7 +19,15 @@ class UserCreate(UserBase):
     role_id: int
     password: str
 
-class UserUpdate(UserBase):
+class UserUpdate(BaseModel):
+    account: Optional[str] = None
+    email: Optional[EmailStr] = None
+    avatar: Optional[str] = None
+    real_name: Optional[str] = None
+    organization: Optional[str] = None
+    address: Optional[str] = None
+    mobile: Optional[str] = None
+    status: Optional[BasicStatus] = None
     password: Optional[str] = None
 
 class User(UserBase):

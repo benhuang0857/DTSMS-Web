@@ -1,12 +1,12 @@
 <template>
     <div class="flex h-screen">
-        <LeftMenu :menuItems="menuItems" />
+        <LeftMenu :menuItems="menuItems" :userInfo="userInfo" />
 
         <main class="flex-1 bg-gray-100 p-6">
             <div class="relative">
                 <div class="h-40 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg"></div>
                 <div class="absolute top-24 left-6 flex items-center space-x-4">
-                    <img :src="form.avatar || defaultAvatar" alt="User Avatar"
+                    <img :src="getAvatarUrl(form.avatar) || defaultAvatar" alt="User Avatar"
                         class="w-20 h-20 rounded-full border-4 border-white" />
                     <div>
                         <h1 class="text-2xl font-bold text-gray-800">Settings</h1>
@@ -79,6 +79,14 @@ export default defineComponent({
             avatar: "",
         });
 
+        const userInfo = ref<{
+            id: number;
+            account: string;
+            email: string;
+            real_name?: string;
+            avatar?: string;
+        } | null>(null);
+
         const uploadFile = ref<File | null>(null);
         const isDragging = ref(false);
 
@@ -89,6 +97,8 @@ export default defineComponent({
                 });
                 const userData = response.data.data;
                 userId.value = userData.id;
+                
+                // 更新表單資料
                 form.value = {
                     username: userData.account,
                     email: userData.email,
@@ -97,6 +107,15 @@ export default defineComponent({
                     address: userData.address || "",
                     mobile: userData.mobile || "",
                     avatar: userData.avatar || "",
+                };
+                
+                // 更新用戶資料給 LeftMenu 使用
+                userInfo.value = {
+                    id: userData.id,
+                    account: userData.account,
+                    email: userData.email,
+                    real_name: userData.real_name,
+                    avatar: userData.avatar,
                 };
             } catch (error) {
                 console.error("Failed to fetch user data:", error);
@@ -111,39 +130,43 @@ export default defineComponent({
 
         const saveForm = async () => {
             try {
-                const updateData = {
-                    username: form.value.username,
-                    email: form.value.email,
-                    real_name: form.value.real_name || null,
-                    organization: form.value.organization || null,
-                    address: form.value.address || null,
-                    mobile: form.value.mobile || null,
-                };
-                await axios.put(`http://172.31.176.1:8000/users/${userId.value}`, updateData, {
-                    headers: { Authorization: `Bearer ${authToken.value}` },
-                });
-
+                // 先處理avatar上傳 (如果有的話)
                 if (uploadFile.value) {
                     const formData = new FormData();
                     formData.append("file", uploadFile.value);
-                    const uploadResponse = await axios.post("http://172.31.176.1:8000/file_uploads/", formData, {
+                    const avatarResponse = await axios.post(`http://172.31.176.1:8000/api/users/${userId.value}/avatar`, formData, {
                         headers: {
                             "Content-Type": "multipart/form-data",
                             Authorization: `Bearer ${authToken.value}`,
                         },
                     });
-                    form.value.avatar = uploadResponse.data.file_path;
-                    await axios.put(
-                        `http://172.31.176.1:8000/users/${userId.value}`,
-                        { avatar: form.value.avatar },
-                        { headers: { Authorization: `Bearer ${authToken.value}` } }
-                    );
+                    form.value.avatar = avatarResponse.data.avatar;
                 }
 
+                // 然後更新其他用戶資料 (不包含avatar，因為已經單獨處理)
+                const updateData = {
+                    account: form.value.username,
+                    email: form.value.email,
+                    real_name: form.value.real_name || null,
+                    organization: form.value.organization || null,
+                    address: form.value.address || null,
+                    mobile: form.value.mobile || null,
+                    status: "active",
+                };
+                await axios.put(`http://172.31.176.1:8000/api/users/${userId.value}`, updateData, {
+                    headers: { Authorization: `Bearer ${authToken.value}` },
+                });
+
                 alert("Settings saved successfully!");
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Failed to save settings:", error);
-                alert("Failed to save settings. Please try again.");
+                if (error.response) {
+                    console.error("Response data:", error.response.data);
+                    console.error("Response status:", error.response.status);
+                    alert(`Failed to save settings: ${error.response.data.detail?.message || error.response.data.detail || 'Unknown error'}`);
+                } else {
+                    alert("Failed to save settings. Please try again.");
+                }
             }
         };
 
@@ -168,6 +191,14 @@ export default defineComponent({
             if (file) uploadFile.value = file;
         };
 
+        const getAvatarUrl = (avatarPath: string | null) => {
+            if (!avatarPath) return null;
+            // 如果已經是完整URL，直接返回
+            if (avatarPath.startsWith('http')) return avatarPath;
+            // 否則加上後端基礎URL
+            return `http://172.31.176.1:8000/${avatarPath}`;
+        };
+
         onMounted(() => {
             fetchUserData();
         });
@@ -177,6 +208,7 @@ export default defineComponent({
             tabs,
             activeTab,
             form,
+            userInfo,
             uploadFile,
             isDragging,
             defaultAvatar,
@@ -187,6 +219,7 @@ export default defineComponent({
             onDrop,
             onBrowse,
             onFileSelected,
+            getAvatarUrl,
         };
     },
 });

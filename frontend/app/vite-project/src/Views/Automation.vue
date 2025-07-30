@@ -1,6 +1,6 @@
 <template>
   <div class="flex min-h-screen" v-if="isAuthenticated">
-    <LeftMenu :menuItems="menuItems" />
+    <LeftMenu :menuItems="menuItems" :userInfo="userInfo" />
     
     <main class="flex-1 flex flex-col">
       <div class="automation-container">
@@ -317,6 +317,15 @@ const router = useRouter();
 const authToken = ref(localStorage.getItem('token') || '');
 const isAuthenticated = ref(false);
 
+// 用戶資料
+const userInfo = ref<{
+  id: number;
+  account: string;
+  email: string;
+  real_name?: string;
+  avatar?: string;
+} | null>(null);
+
 // 菜單項
 const menuItems = ref([
   { label: 'Dashboard', link: '/dashboard', icon: 'fas fa-tachometer-alt', active: false },
@@ -385,6 +394,16 @@ const checkAuth = async () => {
     });
     if (response.status === 200) {
       isAuthenticated.value = true;
+      const userData = response.data.data;
+      
+      // 更新用戶資料給 LeftMenu 使用
+      userInfo.value = {
+        id: userData.id,
+        account: userData.account,
+        email: userData.email,
+        real_name: userData.real_name,
+        avatar: userData.avatar,
+      };
     }
   } catch (error) {
     console.error('Token verification failed:', error);
