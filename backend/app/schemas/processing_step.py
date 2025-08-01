@@ -6,15 +6,18 @@ class ProcessingStepBase(BaseModel):
     autoflow_id: Optional[int] = None
     name: str
     description: Optional[str] = None
+    execution_order: int = 1
 
 class ProcessingStepCreate(BaseModel):
     name: str
     description: Optional[str] = None
+    execution_order: int = 1
 
 class ProcessingStepUpdate(BaseModel):
     autoflow_id: Optional[int] = None
     name: Optional[str] = None
     description: Optional[str] = None
+    execution_order: Optional[int] = None
 
 class ProcessingStep(ProcessingStepBase):
     id: int
@@ -29,6 +32,7 @@ class ProcessingStepWithRelations(BaseModel):
     autoflow_id: Optional[int] = None
     name: str
     description: Optional[str] = None
+    execution_order: int = 1
     created_time: datetime
     updated_time: datetime
     

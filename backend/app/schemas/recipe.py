@@ -82,6 +82,8 @@ class AutoflowInfo(BaseModel):
     name: str
     description: Optional[str] = None
     status: BasicStatus
+    allow_parallel_steps: bool = False
+    execution_order: int = 1
     created_time: datetime
     updated_time: datetime
     processing_steps: List[dict] = []

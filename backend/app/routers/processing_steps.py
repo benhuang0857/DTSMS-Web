@@ -54,6 +54,7 @@ def get_processing_steps(skip: int = 0, limit: int = 10,
                     autoflow_id=step.autoflow_id,
                     name=step.name,
                     description=step.description,
+                    execution_order=step.execution_order,
                     created_time=step.created_time,
                     updated_time=step.updated_time,
                     autoflow_name=autoflow_name,
@@ -108,6 +109,7 @@ def get_processing_step(step_id: int,
             autoflow_id=step.autoflow_id,
             name=step.name,
             description=step.description,
+            execution_order=step.execution_order,
             created_time=step.created_time,
             updated_time=step.updated_time,
             autoflow_name=autoflow_name,
@@ -159,6 +161,7 @@ def get_processing_steps_by_autoflow(autoflow_id: int,
                     autoflow_id=step.autoflow_id,
                     name=step.name,
                     description=step.description,
+                    execution_order=step.execution_order,
                     created_time=step.created_time,
                     updated_time=step.updated_time,
                     autoflow_name=autoflow.name,
@@ -199,7 +202,8 @@ def create_processing_step(step: ProcessingStepCreate,
         db_step = ProcessingStepModel(
             autoflow_id=step.autoflow_id,
             name=step.name,
-            description=step.description
+            description=step.description,
+            execution_order=step.execution_order
         )
         
         db.add(db_step)

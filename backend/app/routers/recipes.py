@@ -52,6 +52,7 @@ def get_recipes(skip: int = 0, limit: int = 10,
                         "id": step.id,
                         "name": step.name,
                         "description": step.description,
+                        "execution_order": step.execution_order,
                         "created_time": step.created_time,
                         "updated_time": step.updated_time
                     } for step in processing_steps
@@ -62,6 +63,8 @@ def get_recipes(skip: int = 0, limit: int = 10,
                     "name": autoflow.name,
                     "description": autoflow.description,
                     "status": autoflow.status,
+                    "allow_parallel_steps": autoflow.allow_parallel_steps,
+                    "execution_order": autoflow.execution_order,
                     "created_time": autoflow.created_time,
                     "updated_time": autoflow.updated_time,
                     "processing_steps": processing_steps_data
@@ -388,6 +391,7 @@ def get_recipe_full(recipe_id: int,
                     "id": step.id,
                     "name": step.name,
                     "description": step.description,
+                    "execution_order": step.execution_order,
                     "created_time": step.created_time,
                     "updated_time": step.updated_time
                 } for step in processing_steps
@@ -398,6 +402,8 @@ def get_recipe_full(recipe_id: int,
                 "name": autoflow.name,
                 "description": autoflow.description,
                 "status": autoflow.status,
+                "allow_parallel_steps": autoflow.allow_parallel_steps,
+                "execution_order": autoflow.execution_order,
                 "created_time": autoflow.created_time,
                 "updated_time": autoflow.updated_time,
                 "processing_steps": processing_steps_data

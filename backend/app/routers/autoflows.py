@@ -94,6 +94,7 @@ def get_autoflows(skip: int = 0, limit: int = 10,
                     description=autoflow.description,
                     status=autoflow.status,
                     allow_parallel_steps=autoflow.allow_parallel_steps,
+                    execution_order=autoflow.execution_order,
                     created_time=autoflow.created_time,
                     updated_time=autoflow.updated_time,
                     recipe_name=recipe_name,
@@ -155,6 +156,7 @@ def get_autoflow(autoflow_id: int,
             description=autoflow_result.description,
             status=autoflow_result.status,
             allow_parallel_steps=autoflow_result.allow_parallel_steps,
+            execution_order=autoflow_result.execution_order,
             created_time=autoflow_result.created_time,
             updated_time=autoflow_result.updated_time,
             recipe_name=None,  # 暫時設為 None
@@ -196,7 +198,8 @@ def create_autoflow(autoflow: AutoflowCreate,
             name=autoflow.name,
             description=autoflow.description,
             status=autoflow.status,
-            allow_parallel_steps=autoflow.allow_parallel_steps
+            allow_parallel_steps=autoflow.allow_parallel_steps,
+            execution_order=autoflow.execution_order
         )
         
         db.add(db_autoflow)
@@ -208,7 +211,8 @@ def create_autoflow(autoflow: AutoflowCreate,
                 db_step = ProcessingStepModel(
                     autoflow_id=db_autoflow.id,
                     name=step_data.name,
-                    description=step_data.description
+                    description=step_data.description,
+                    execution_order=step_data.execution_order
                 )
                 db.add(db_step)
         
@@ -279,7 +283,8 @@ def update_autoflow(autoflow_id: int,
                 db_step = ProcessingStepModel(
                     autoflow_id=db_autoflow.id,
                     name=step_data.name,
-                    description=step_data.description
+                    description=step_data.description,
+                    execution_order=step_data.execution_order
                 )
                 db.add(db_step)
         

@@ -89,6 +89,7 @@ def upgrade() -> None:
         sa.Column('autoflow_id', sa.BigInteger, sa.ForeignKey('autoflows.id'), nullable=True, comment="關聯掃描自動化腳本ID"),
         sa.Column('name', sa.String(50), nullable=False, comment="步驟名稱"),
         sa.Column('description', sa.Text, nullable=True, comment="步驟描述"),
+        sa.Column('execution_order', sa.Integer, nullable=False, server_default="1", comment="執行順序，數字相同表示可同時執行"),
         sa.Column('created_time', sa.TIMESTAMP, server_default=func.now(), nullable=False),
         sa.Column('updated_time', sa.TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False),
     )

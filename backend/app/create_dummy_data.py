@@ -128,12 +128,13 @@ def create_dummy_data():
                 "description": "針對生產環境的網站進行全面的安全掃描",
                 "status": BasicStatus.active,
                 "allow_parallel_steps": True,  # 允許並行執行
+                "execution_order": 1,  # 執行順序
                 "steps": [
-                    {"name": "Step 1: 初始連接檢測", "description": "檢查目標網站的連接狀態和基本資訊"},
-                    {"name": "Step 2: 漏洞掃描", "description": "執行全面的漏洞掃描"},
-                    {"name": "Step 3: 深度分析", "description": "對發現的漏洞進行深度分析"},
-                    {"name": "Step 4: 風險評估", "description": "評估漏洞的風險等級和影響範圍"},
-                    {"name": "Step 5: 報告生成", "description": "生成詳細的掃描報告"}
+                    {"name": "Step 1: 初始連接檢測", "description": "檢查目標網站的連接狀態和基本資訊", "execution_order": 1},
+                    {"name": "Step 2: 漏洞掃描", "description": "執行全面的漏洞掃描", "execution_order": 2},
+                    {"name": "Step 3: 深度分析", "description": "對發現的漏洞進行深度分析", "execution_order": 2},
+                    {"name": "Step 4: 風險評估", "description": "評估漏洞的風險等級和影響範圍", "execution_order": 3},
+                    {"name": "Step 5: 報告生成", "description": "生成詳細的掃描報告", "execution_order": 4}
                 ]
             },
             {
@@ -142,10 +143,11 @@ def create_dummy_data():
                 "description": "針對測試環境的網站進行快速掃描",
                 "status": BasicStatus.active,
                 "allow_parallel_steps": False,  # 順序執行
+                "execution_order": 2,  # 第二個執行
                 "steps": [
-                    {"name": "Step 1: 快速掃描", "description": "執行快速的基礎掃描"},
-                    {"name": "Step 2: 基本檢測", "description": "檢測常見的安全問題"},
-                    {"name": "Step 3: 簡易報告", "description": "生成簡化的掃描報告"}
+                    {"name": "Step 1: 快速掃描", "description": "執行快速的基礎掃描", "execution_order": 1},
+                    {"name": "Step 2: 基本檢測", "description": "檢測常見的安全問題", "execution_order": 2},
+                    {"name": "Step 3: 簡易報告", "description": "生成簡化的掃描報告", "execution_order": 3}
                 ]
             },
             {
@@ -154,12 +156,13 @@ def create_dummy_data():
                 "description": "對 API 端點進行全面的安全測試",
                 "status": BasicStatus.active,
                 "allow_parallel_steps": False,  # 順序執行
+                "execution_order": 1,  # 執行順序
                 "steps": [
-                    {"name": "Step 1: API 發現", "description": "自動發現 API 端點"},
-                    {"name": "Step 2: 認證測試", "description": "測試 API 認證機制"},
-                    {"name": "Step 3: 授權測試", "description": "測試 API 授權控制"},
-                    {"name": "Step 4: 輸入驗證測試", "description": "測試 API 輸入驗證"},
-                    {"name": "Step 5: 效能測試", "description": "測試 API 效能和限流"}
+                    {"name": "Step 1: API 發現", "description": "自動發現 API 端點", "execution_order": 1},
+                    {"name": "Step 2: 認證測試", "description": "測試 API 認證機制", "execution_order": 2},
+                    {"name": "Step 3: 授權測試", "description": "測試 API 授權控制", "execution_order": 3},
+                    {"name": "Step 4: 輸入驗證測試", "description": "測試 API 輸入驗證", "execution_order": 4},
+                    {"name": "Step 5: 效能測試", "description": "測試 API 效能和限流", "execution_order": 5}
                 ]
             },
             {
@@ -168,12 +171,13 @@ def create_dummy_data():
                 "description": "針對 Android 應用程式的全面安全掃描",
                 "status": BasicStatus.active,
                 "allow_parallel_steps": True,  # 允許並行執行
+                "execution_order": 1,  # 與 iOS 並行執行
                 "steps": [
-                    {"name": "Step 1: APK 解析", "description": "解析 APK 檔案結構"},
-                    {"name": "Step 2: 靜態分析", "description": "進行程式碼靜態分析"},
-                    {"name": "Step 3: 動態分析", "description": "執行動態行為分析"},
-                    {"name": "Step 4: 網路分析", "description": "分析網路通訊行為"},
-                    {"name": "Step 5: 安全報告", "description": "生成安全評估報告"}
+                    {"name": "Step 1: APK 解析", "description": "解析 APK 檔案結構", "execution_order": 1},
+                    {"name": "Step 2: 靜態分析", "description": "進行程式碼靜態分析", "execution_order": 2},
+                    {"name": "Step 3: 動態分析", "description": "執行動態行為分析", "execution_order": 2},
+                    {"name": "Step 4: 網路分析", "description": "分析網路通訊行為", "execution_order": 2},
+                    {"name": "Step 5: 安全報告", "description": "生成安全評估報告", "execution_order": 3}
                 ]
             },
             {
@@ -182,12 +186,13 @@ def create_dummy_data():
                 "description": "針對 iOS 應用程式的全面安全掃描",
                 "status": BasicStatus.active,
                 "allow_parallel_steps": False,  # 順序執行
+                "execution_order": 1,  # 與 Android 並行執行
                 "steps": [
-                    {"name": "Step 1: IPA 解析", "description": "解析 IPA 檔案結構"},
-                    {"name": "Step 2: 靜態分析", "description": "進行程式碼靜態分析"},
-                    {"name": "Step 3: 動態分析", "description": "執行動態行為分析"},
-                    {"name": "Step 4: 隱私檢測", "description": "檢測隱私權限使用"},
-                    {"name": "Step 5: 安全報告", "description": "生成安全評估報告"}
+                    {"name": "Step 1: IPA 解析", "description": "解析 IPA 檔案結構", "execution_order": 1},
+                    {"name": "Step 2: 靜態分析", "description": "進行程式碼靜態分析", "execution_order": 2},
+                    {"name": "Step 3: 動態分析", "description": "執行動態行為分析", "execution_order": 3},
+                    {"name": "Step 4: 隱私檢測", "description": "檢測隱私權限使用", "execution_order": 4},
+                    {"name": "Step 5: 安全報告", "description": "生成安全評估報告", "execution_order": 5}
                 ]
             },
             {
@@ -196,12 +201,13 @@ def create_dummy_data():
                 "description": "針對企業網路設備的全面安全掃描",
                 "status": BasicStatus.active,
                 "allow_parallel_steps": True,  # 允許並行執行
+                "execution_order": 1,  # 執行順序
                 "steps": [
-                    {"name": "Step 1: 設備發現", "description": "自動發現網路中的設備"},
-                    {"name": "Step 2: 服務枚舉", "description": "枚舉設備開放的服務"},
-                    {"name": "Step 3: 弱點檢測", "description": "檢測設備的安全弱點"},
-                    {"name": "Step 4: 配置審計", "description": "審計設備安全配置"},
-                    {"name": "Step 5: 合規檢查", "description": "檢查是否符合安全標準"}
+                    {"name": "Step 1: 設備發現", "description": "自動發現網路中的設備", "execution_order": 1},
+                    {"name": "Step 2: 服務枚舉", "description": "枚舉設備開放的服務", "execution_order": 1},
+                    {"name": "Step 3: 弱點檢測", "description": "檢測設備的安全弱點", "execution_order": 2},
+                    {"name": "Step 4: 配置審計", "description": "審計設備安全配置", "execution_order": 2},
+                    {"name": "Step 5: 合規檢查", "description": "檢查是否符合安全標準", "execution_order": 3}
                 ]
             }
         ]
@@ -214,7 +220,8 @@ def create_dummy_data():
                 name=autoflow_data["name"],
                 description=autoflow_data["description"],
                 status=autoflow_data["status"],
-                allow_parallel_steps=autoflow_data["allow_parallel_steps"]
+                allow_parallel_steps=autoflow_data["allow_parallel_steps"],
+                execution_order=autoflow_data["execution_order"]
             )
             db.add(autoflow)
             db.flush()  # 取得 ID
@@ -224,7 +231,8 @@ def create_dummy_data():
                 processing_step = ProcessingStep(
                     autoflow_id=autoflow.id,
                     name=step_data["name"],
-                    description=step_data["description"]
+                    description=step_data["description"],
+                    execution_order=step_data["execution_order"]
                 )
                 db.add(processing_step)
             

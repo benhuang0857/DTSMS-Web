@@ -10,6 +10,7 @@ class AutoflowBase(BaseModel):
     description: Optional[str] = None
     status: BasicStatus
     allow_parallel_steps: bool = False
+    execution_order: int = 1
 
 class AutoflowCreate(AutoflowBase):
     processing_steps: Optional[List[ProcessingStepCreate]] = []
@@ -20,6 +21,7 @@ class AutoflowUpdate(BaseModel):
     description: Optional[str] = None
     status: Optional[BasicStatus] = None
     allow_parallel_steps: Optional[bool] = None
+    execution_order: Optional[int] = None
     processing_steps: Optional[List[ProcessingStepCreate]] = None
 
 class Autoflow(AutoflowBase):
@@ -37,6 +39,7 @@ class AutoflowWithRelations(BaseModel):
     description: Optional[str] = None
     status: BasicStatus
     allow_parallel_steps: bool = False
+    execution_order: int = 1
     created_time: datetime
     updated_time: datetime
     

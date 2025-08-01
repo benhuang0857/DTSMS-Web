@@ -47,6 +47,7 @@ def upgrade() -> None:
             comment="狀態"
         ),
         sa.Column('allow_parallel_steps', sa.Boolean, nullable=False, server_default="false", comment="是否允許Processing Steps並行執行"),
+        sa.Column('execution_order', sa.Integer, nullable=False, server_default="1", comment="執行順序，數字相同表示可同時執行"),
         sa.Column('created_time', sa.TIMESTAMP, server_default=func.now(), nullable=False, comment="創建時間"),
         sa.Column('updated_time', sa.TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新時間"),
     )
