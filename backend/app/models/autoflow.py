@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, String, Text, TIMESTAMP, ForeignKey, Enum
+from sqlalchemy import Column, BigInteger, String, Text, TIMESTAMP, ForeignKey, Enum, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from models.base import Base
@@ -12,6 +12,7 @@ class Autoflow(Base):
     name = Column(String(255), nullable=False, comment="流程名稱")
     description = Column(Text, nullable=True, comment="流程描述")
     status = Column(Enum(BasicStatus, name="basic_status"), nullable=False, server_default="active", comment="狀態")
+    allow_parallel_steps = Column(Boolean, nullable=False, server_default="false", comment="是否允許Processing Steps並行執行")
     created_time = Column(TIMESTAMP, server_default=func.now(), nullable=False, comment="創建時間")
     updated_time = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新時間")
 

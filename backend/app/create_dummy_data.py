@@ -127,6 +127,7 @@ def create_dummy_data():
                 "name": "生產環境網站掃描流程",
                 "description": "針對生產環境的網站進行全面的安全掃描",
                 "status": BasicStatus.active,
+                "allow_parallel_steps": True,  # 允許並行執行
                 "steps": [
                     {"name": "Step 1: 初始連接檢測", "description": "檢查目標網站的連接狀態和基本資訊"},
                     {"name": "Step 2: 漏洞掃描", "description": "執行全面的漏洞掃描"},
@@ -140,6 +141,7 @@ def create_dummy_data():
                 "name": "測試環境網站掃描流程",
                 "description": "針對測試環境的網站進行快速掃描",
                 "status": BasicStatus.active,
+                "allow_parallel_steps": False,  # 順序執行
                 "steps": [
                     {"name": "Step 1: 快速掃描", "description": "執行快速的基礎掃描"},
                     {"name": "Step 2: 基本檢測", "description": "檢測常見的安全問題"},
@@ -151,6 +153,7 @@ def create_dummy_data():
                 "name": "API 安全測試流程",
                 "description": "對 API 端點進行全面的安全測試",
                 "status": BasicStatus.active,
+                "allow_parallel_steps": False,  # 順序執行
                 "steps": [
                     {"name": "Step 1: API 發現", "description": "自動發現 API 端點"},
                     {"name": "Step 2: 認證測試", "description": "測試 API 認證機制"},
@@ -164,6 +167,7 @@ def create_dummy_data():
                 "name": "Android 應用程式掃描流程",
                 "description": "針對 Android 應用程式的全面安全掃描",
                 "status": BasicStatus.active,
+                "allow_parallel_steps": True,  # 允許並行執行
                 "steps": [
                     {"name": "Step 1: APK 解析", "description": "解析 APK 檔案結構"},
                     {"name": "Step 2: 靜態分析", "description": "進行程式碼靜態分析"},
@@ -177,6 +181,7 @@ def create_dummy_data():
                 "name": "iOS 應用程式掃描流程",
                 "description": "針對 iOS 應用程式的全面安全掃描",
                 "status": BasicStatus.active,
+                "allow_parallel_steps": False,  # 順序執行
                 "steps": [
                     {"name": "Step 1: IPA 解析", "description": "解析 IPA 檔案結構"},
                     {"name": "Step 2: 靜態分析", "description": "進行程式碼靜態分析"},
@@ -190,6 +195,7 @@ def create_dummy_data():
                 "name": "企業網路設備掃描流程",
                 "description": "針對企業網路設備的全面安全掃描",
                 "status": BasicStatus.active,
+                "allow_parallel_steps": True,  # 允許並行執行
                 "steps": [
                     {"name": "Step 1: 設備發現", "description": "自動發現網路中的設備"},
                     {"name": "Step 2: 服務枚舉", "description": "枚舉設備開放的服務"},
@@ -207,7 +213,8 @@ def create_dummy_data():
                 recipe_id=autoflow_data["recipe_id"],
                 name=autoflow_data["name"],
                 description=autoflow_data["description"],
-                status=autoflow_data["status"]
+                status=autoflow_data["status"],
+                allow_parallel_steps=autoflow_data["allow_parallel_steps"]
             )
             db.add(autoflow)
             db.flush()  # 取得 ID

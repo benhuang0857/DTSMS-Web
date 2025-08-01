@@ -93,6 +93,7 @@ def get_autoflows(skip: int = 0, limit: int = 10,
                     name=autoflow.name,
                     description=autoflow.description,
                     status=autoflow.status,
+                    allow_parallel_steps=autoflow.allow_parallel_steps,
                     created_time=autoflow.created_time,
                     updated_time=autoflow.updated_time,
                     recipe_name=recipe_name,
@@ -153,6 +154,7 @@ def get_autoflow(autoflow_id: int,
             name=autoflow_result.name,
             description=autoflow_result.description,
             status=autoflow_result.status,
+            allow_parallel_steps=autoflow_result.allow_parallel_steps,
             created_time=autoflow_result.created_time,
             updated_time=autoflow_result.updated_time,
             recipe_name=None,  # 暫時設為 None
@@ -193,7 +195,8 @@ def create_autoflow(autoflow: AutoflowCreate,
             recipe_id=autoflow.recipe_id,
             name=autoflow.name,
             description=autoflow.description,
-            status=autoflow.status
+            status=autoflow.status,
+            allow_parallel_steps=autoflow.allow_parallel_steps
         )
         
         db.add(db_autoflow)
