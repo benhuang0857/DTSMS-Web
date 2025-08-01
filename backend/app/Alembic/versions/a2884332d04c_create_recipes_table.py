@@ -40,6 +40,7 @@ def upgrade() -> None:
             nullable=False,
             comment="狀態"
         ),
+        sa.Column('allow_parallel_autoflows', sa.Boolean, nullable=False, server_default="false", comment="是否允許Autoflow並行執行"),
         sa.Column('created_time', sa.TIMESTAMP, server_default=func.now(), nullable=False),
         sa.Column('updated_time', sa.TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False),
     )

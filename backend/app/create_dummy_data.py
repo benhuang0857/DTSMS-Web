@@ -35,6 +35,7 @@ def create_dummy_data():
                 "description": "標準的網站安全漏洞掃描配方，包含多個掃描步驟",
                 "status": BasicStatus.active,
                 "library_id": None,
+                "allow_parallel_autoflows": True,  # 允許並行執行
                 "steps": [
                     {"number": 1, "action": "port_scan", "parameters": {"timeout": 30, "ports": "80,443,8080"}},
                     {"number": 2, "action": "vulnerability_scan", "parameters": {"deep_scan": True, "check_ssl": True}},
@@ -48,6 +49,7 @@ def create_dummy_data():
                 "description": "專門針對 API 端點的安全測試配方",
                 "status": BasicStatus.active,
                 "library_id": None,
+                "allow_parallel_autoflows": False,  # 順序執行
                 "steps": [
                     {"number": 1, "action": "api_discovery", "parameters": {"swagger_check": True}},
                     {"number": 2, "action": "authentication_test", "parameters": {"test_bypass": True}},
@@ -61,6 +63,7 @@ def create_dummy_data():
                 "description": "行動應用程式（APK/IPA）的安全掃描配方",
                 "status": BasicStatus.active,
                 "library_id": None,
+                "allow_parallel_autoflows": True,  # 允許並行執行
                 "steps": [
                     {"number": 1, "action": "app_info_extraction", "parameters": {"extract_manifest": True}},
                     {"number": 2, "action": "static_analysis", "parameters": {"check_permissions": True}},
@@ -74,6 +77,7 @@ def create_dummy_data():
                 "description": "針對網路設備（路由器、交換機等）的掃描配方",
                 "status": BasicStatus.active,
                 "library_id": None,
+                "allow_parallel_autoflows": False,  # 順序執行
                 "steps": [
                     {"number": 1, "action": "device_discovery", "parameters": {"snmp_check": True}},
                     {"number": 2, "action": "service_enumeration", "parameters": {"check_telnet": True, "check_ssh": True}},
@@ -91,7 +95,8 @@ def create_dummy_data():
                 name=recipe_data["name"],
                 description=recipe_data["description"],
                 status=recipe_data["status"],
-                library_id=recipe_data["library_id"]
+                library_id=recipe_data["library_id"],
+                allow_parallel_autoflows=recipe_data["allow_parallel_autoflows"]
             )
             db.add(recipe)
             db.flush()  # 取得 ID

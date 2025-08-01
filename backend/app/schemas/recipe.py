@@ -32,6 +32,7 @@ class RecipeBase(BaseModel):
     name: str
     description: Optional[str] = None
     status: BasicStatus
+    allow_parallel_autoflows: bool = False
 
 class RecipeCreate(RecipeBase):
     recipe_steps: Optional[List[RecipeStepCreate]] = []
@@ -41,6 +42,7 @@ class RecipeUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     status: Optional[BasicStatus] = None
+    allow_parallel_autoflows: Optional[bool] = None
     recipe_steps: Optional[List[RecipeStepCreate]] = None
 
 class Recipe(RecipeBase):
@@ -57,6 +59,7 @@ class RecipeWithRelations(BaseModel):
     name: str
     description: Optional[str] = None
     status: BasicStatus
+    allow_parallel_autoflows: bool = False
     created_time: datetime
     updated_time: datetime
     
