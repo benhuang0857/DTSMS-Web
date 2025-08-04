@@ -853,6 +853,9 @@ const clearFlow = () => {
 
 // Load Recipe flow
 const loadRecipeFlow = (recipe: any) => {
+  console.log('Loading Recipe Flow - Recipe data:', recipe);
+  console.log('Recipe allow_parallel_autoflows:', recipe.allow_parallel_autoflows);
+  
   setNodes([]);
   setEdges([]);
   
@@ -887,6 +890,9 @@ const loadRecipeFlow = (recipe: any) => {
   let previousAutoflowNodeId = recipeNode.id;
   
   recipe.autoflows.forEach((autoflow: any, autoflowIndex: number) => {
+    console.log(`Processing autoflow ${autoflowIndex}:`, autoflow);
+    console.log(`Autoflow allow_parallel_steps:`, autoflow.allow_parallel_steps);
+    
     const autoflowX = recipeX + (autoflowIndex * autoflowSpacing);
     const autoflowNode: Node = {
       id: `autoflow_${autoflow.id}`,
@@ -958,8 +964,23 @@ const loadRecipeFlow = (recipe: any) => {
     }
   });
   
+  // Add nodes first, then edges after nodes are rendered
+  console.log('Loading Recipe Flow - Creating nodes:', newNodes.map(n => n.id));
+  console.log('Loading Recipe Flow - Creating edges:', newEdges.map(e => `${e.id}: ${e.source} -> ${e.target}`));
+  
   addNodes(newNodes);
-  addEdges(newEdges);
+  
+  // Use nextTick to ensure nodes are rendered before creating edges
+  nextTick(() => {
+    console.log('Adding edges after nextTick:', newEdges);
+    if (newEdges.length > 0) {
+      addEdges(newEdges);
+      console.log('Edges added successfully');
+    } else {
+      console.log('No edges to add');
+    }
+  });
+  
   selectedRecipeId.value = '';
 };
 
