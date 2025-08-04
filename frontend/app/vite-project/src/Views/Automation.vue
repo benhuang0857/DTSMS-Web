@@ -221,6 +221,15 @@
             <div class="modal-body">
               <form @submit.prevent="submitRecipe">
                 <div class="form-group">
+                  <label>關聯的 Library</label>
+                  <select v-model="recipeForm.library_id" class="form-control">
+                    <option :value="null">選擇 Library（可選）</option>
+                    <option v-for="library in libraries" :key="library.id" :value="library.id">
+                      {{ library.name }}
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group">
                   <label>名稱</label>
                   <input v-model="recipeForm.name" type="text" class="form-control" required>
                 </div>
@@ -234,6 +243,12 @@
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                   </select>
+                </div>
+                <div class="form-group">
+                  <label class="flex items-center">
+                    <input v-model="recipeForm.allow_parallel_autoflows" type="checkbox" class="mr-2">
+                    允許平行執行 Autoflows
+                  </label>
                 </div>
                 <div class="form-actions">
                   <button type="button" @click="showRecipeModal = false" class="btn btn-secondary">取消</button>
@@ -277,6 +292,16 @@
                     <option value="inactive">Inactive</option>
                   </select>
                 </div>
+                <div class="form-group">
+                  <label>執行順序</label>
+                  <input v-model.number="autoflowForm.execution_order" type="number" class="form-control" min="1" required>
+                </div>
+                <div class="form-group">
+                  <label class="flex items-center">
+                    <input v-model="autoflowForm.allow_parallel_steps" type="checkbox" class="mr-2">
+                    允許步驟平行執行
+                  </label>
+                </div>
                 <div class="form-actions">
                   <button type="button" @click="showAutoflowModal = false" class="btn btn-secondary">取消</button>
                   <button type="submit" class="btn btn-primary">{{ editingAutoflow ? '更新' : '創建' }}</button>
@@ -311,6 +336,10 @@
                 <div class="form-group">
                   <label>描述</label>
                   <textarea v-model="processingStepForm.description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>執行順序</label>
+                  <input v-model.number="processingStepForm.execution_order" type="number" class="form-control" min="1" required>
                 </div>
                 <div class="form-actions">
                   <button type="button" @click="showProcessingStepModal = false" class="btn btn-secondary">取消</button>
@@ -371,6 +400,7 @@ const menuItems = ref([
 const recipes = ref<any[]>([]);
 const autoflows = ref<any[]>([]);
 const processingSteps = ref<any[]>([]);
+const libraries = ref<any[]>([]);
 const selectedRecipeId = ref('');
 
 // Component library state
@@ -391,9 +421,11 @@ const editingProcessingStep = ref<any>(null);
 
 // Form data
 const recipeForm = ref({
+  library_id: null,
   name: '',
   description: '',
   status: 'active',
+  allow_parallel_autoflows: false,
   recipe_steps: []
 });
 
@@ -402,13 +434,16 @@ const autoflowForm = ref({
   name: '',
   description: '',
   status: 'active',
+  allow_parallel_steps: false,
+  execution_order: 1,
   processing_steps: []
 });
 
 const processingStepForm = ref({
   autoflow_id: '',
   name: '',
-  description: ''
+  description: '',
+  execution_order: 1
 });
 
 // Authentication check
@@ -442,7 +477,7 @@ const checkAuth = async () => {
 // Load data
 const loadData = async () => {
   try {
-    const [recipesRes, autoflowsRes, stepsRes] = await Promise.all([
+    const [recipesRes, autoflowsRes, stepsRes, librariesRes] = await Promise.all([
       axios.get('http://172.31.176.1:8000/api/recipes', {
         headers: { Authorization: `Bearer ${authToken.value}` }
       }),
@@ -451,12 +486,16 @@ const loadData = async () => {
       }),
       axios.get('http://172.31.176.1:8000/api/processing-steps', {
         headers: { Authorization: `Bearer ${authToken.value}` }
+      }),
+      axios.get('http://172.31.176.1:8000/api/libraries', {
+        headers: { Authorization: `Bearer ${authToken.value}` }
       })
     ]);
     
     recipes.value = recipesRes.data;
     autoflows.value = autoflowsRes.data;
     processingSteps.value = stepsRes.data;
+    libraries.value = librariesRes.data;
   } catch (error) {
     console.error('載入資料失敗:', error);
   }
@@ -629,6 +668,8 @@ const addRecipeWithChildren = (recipe: any, startX: number, startY: number) => {
   
   // Create Autoflow nodes and their Processing Steps
   if (recipe.autoflows && recipe.autoflows.length > 0) {
+    let previousAutoflowNodeId = recipeNode.id;
+    
     recipe.autoflows.forEach((autoflow: any, autoflowIndex: number) => {
       const autoflowX = startX + (autoflowIndex * autoflowSpacing);
       
@@ -642,17 +683,29 @@ const addRecipeWithChildren = (recipe: any, startX: number, startY: number) => {
       };
       newNodes.push(autoflowNode);
       
-      // Create edge from Recipe to Autoflow
-      newEdges.push({
-        id: `e-${recipeNode.id}-${autoflowNode.id}`,
-        source: recipeNode.id,
-        target: autoflowNode.id,
-        type: 'bezier',
-      });
+      // Create edge based on parallel setting
+      if (recipe.allow_parallel_autoflows) {
+        // Parallel: Recipe connects to all Autoflows
+        newEdges.push({
+          id: `e-${recipeNode.id}-${autoflowNode.id}`,
+          source: recipeNode.id,
+          target: autoflowNode.id,
+          type: 'bezier',
+        });
+      } else {
+        // Sequential: Chain connection
+        newEdges.push({
+          id: `e-${previousAutoflowNodeId}-${autoflowNode.id}`,
+          source: previousAutoflowNodeId,
+          target: autoflowNode.id,
+          type: 'bezier',
+        });
+        previousAutoflowNodeId = autoflowNode.id;
+      }
       
       // Create Processing Step nodes
       if (autoflow.processing_steps && autoflow.processing_steps.length > 0) {
-        let previousNodeId = autoflowNode.id;
+        let previousStepNodeId = autoflowNode.id;
         
         autoflow.processing_steps.forEach((step: any, stepIndex: number) => {
           const stepX = autoflowX + (stepIndex * stepSpacing) - ((autoflow.processing_steps.length - 1) * stepSpacing / 2);
@@ -667,15 +720,25 @@ const addRecipeWithChildren = (recipe: any, startX: number, startY: number) => {
           };
           newNodes.push(stepNode);
           
-          // Create edge from previous node to current step
-          newEdges.push({
-            id: `e-${previousNodeId}-${stepNode.id}`,
-            source: previousNodeId,
-            target: stepNode.id,
-            type: 'bezier',
-          });
-          
-          previousNodeId = stepNode.id;
+          // Create edge based on autoflow's parallel setting
+          if (autoflow.allow_parallel_steps) {
+            // Parallel: Autoflow connects to all Steps
+            newEdges.push({
+              id: `e-${autoflowNode.id}-${stepNode.id}`,
+              source: autoflowNode.id,
+              target: stepNode.id,
+              type: 'bezier',
+            });
+          } else {
+            // Sequential: Chain connection
+            newEdges.push({
+              id: `e-${previousStepNodeId}-${stepNode.id}`,
+              source: previousStepNodeId,
+              target: stepNode.id,
+              type: 'bezier',
+            });
+            previousStepNodeId = stepNode.id;
+          }
         });
       }
     });
@@ -713,7 +776,7 @@ const submitRecipe = async () => {
     
     showRecipeModal.value = false;
     editingRecipe.value = null;
-    recipeForm.value = { name: '', description: '', status: 'active', recipe_steps: [] };
+    recipeForm.value = { library_id: null, name: '', description: '', status: 'active', allow_parallel_autoflows: false, recipe_steps: [] };
     await loadData();
   } catch (error) {
     console.error('Recipe 操作失敗:', error);
@@ -741,7 +804,7 @@ const submitAutoflow = async () => {
     
     showAutoflowModal.value = false;
     editingAutoflow.value = null;
-    autoflowForm.value = { recipe_id: '', name: '', description: '', status: 'active', processing_steps: [] };
+    autoflowForm.value = { recipe_id: '', name: '', description: '', status: 'active', allow_parallel_steps: false, execution_order: 1, processing_steps: [] };
     await loadData();
   } catch (error) {
     console.error('Autoflow 操作失敗:', error);
@@ -769,7 +832,7 @@ const submitProcessingStep = async () => {
     
     showProcessingStepModal.value = false;
     editingProcessingStep.value = null;
-    processingStepForm.value = { autoflow_id: '', name: '', description: '' };
+    processingStepForm.value = { autoflow_id: '', name: '', description: '', execution_order: 1 };
     await loadData();
   } catch (error) {
     console.error('Processing Step 操作失敗:', error);
@@ -821,6 +884,8 @@ const loadRecipeFlow = (recipe: any) => {
   const newEdges: Edge[] = [];
   
   // Create Autoflow nodes and edges
+  let previousAutoflowNodeId = recipeNode.id;
+  
   recipe.autoflows.forEach((autoflow: any, autoflowIndex: number) => {
     const autoflowX = recipeX + (autoflowIndex * autoflowSpacing);
     const autoflowNode: Node = {
@@ -832,16 +897,30 @@ const loadRecipeFlow = (recipe: any) => {
     };
     
     newNodes.push(autoflowNode);
-    newEdges.push({
-      id: `e-recipe_${recipe.id}-autoflow_${autoflow.id}`,
-      source: recipeNode.id,
-      target: autoflowNode.id,
-      type: 'bezier',
-    });
+    
+    // Create edge based on Recipe's parallel setting
+    if (recipe.allow_parallel_autoflows) {
+      // Parallel: Recipe connects to all Autoflows
+      newEdges.push({
+        id: `e-recipe_${recipe.id}-autoflow_${autoflow.id}`,
+        source: recipeNode.id,
+        target: autoflowNode.id,
+        type: 'bezier',
+      });
+    } else {
+      // Sequential: Chain connection
+      newEdges.push({
+        id: `e-${previousAutoflowNodeId}-autoflow_${autoflow.id}`,
+        source: previousAutoflowNodeId,
+        target: autoflowNode.id,
+        type: 'bezier',
+      });
+      previousAutoflowNodeId = autoflowNode.id;
+    }
     
     // Create Processing Step nodes and edges
     if (autoflow.processing_steps && autoflow.processing_steps.length > 0) {
-      let previousNodeId = autoflowNode.id;
+      let previousStepNodeId = autoflowNode.id;
       
       autoflow.processing_steps.forEach((step: any, stepIndex: number) => {
         const stepX = autoflowX + (stepIndex * stepSpacing) - ((autoflow.processing_steps.length - 1) * stepSpacing / 2);
@@ -856,14 +935,25 @@ const loadRecipeFlow = (recipe: any) => {
         
         newNodes.push(stepNode);
         
-        newEdges.push({
-          id: `e-${previousNodeId}-step_${step.id}`,
-          source: previousNodeId,
-          target: stepNode.id,
-          type: 'bezier',
-        });
-        
-        previousNodeId = stepNode.id;
+        // Create edge based on Autoflow's parallel setting
+        if (autoflow.allow_parallel_steps) {
+          // Parallel: Autoflow connects to all Steps
+          newEdges.push({
+            id: `e-autoflow_${autoflow.id}-step_${step.id}`,
+            source: autoflowNode.id,
+            target: stepNode.id,
+            type: 'bezier',
+          });
+        } else {
+          // Sequential: Chain connection
+          newEdges.push({
+            id: `e-${previousStepNodeId}-step_${step.id}`,
+            source: previousStepNodeId,
+            target: stepNode.id,
+            type: 'bezier',
+          });
+          previousStepNodeId = stepNode.id;
+        }
       });
     }
   });
