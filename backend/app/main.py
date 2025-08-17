@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
-from routers import auth, users, roles, web_settings, libraries, tickets, uploaded_files, file_trackings, autoflows, recipes, processing_steps
+from routers import auth, users, roles, web_settings, libraries, library_actions, tickets, uploaded_files, file_trackings, autoflows, recipes, processing_steps
 
 app = FastAPI()
 
@@ -20,6 +20,7 @@ app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(roles.router, prefix="/api/roles", tags=["roles"])
 app.include_router(web_settings.router, prefix="/api/web-settings", tags=["web-settings"])
 app.include_router(libraries.router, prefix="/api/libraries", tags=["libraries"])
+app.include_router(library_actions.router, prefix="/api/library-actions", tags=["library-actions"])
 app.include_router(tickets.router, prefix="/api/tickets", tags=["tickets"])
 app.include_router(uploaded_files.router, prefix="/api/uploaded-files", tags=["uploaded-files"])
 app.include_router(file_trackings.router, prefix="/api/file-trackings", tags=["file-trackings"])

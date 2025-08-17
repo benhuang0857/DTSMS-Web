@@ -1,0 +1,963 @@
+{
+	"info": {
+		"_postman_id": "dtsms-api-collection",
+		"name": "DTSMS API Collection",
+		"description": "Complete API collection for DTSMS (Digital Transformation Service Management System)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🔐 Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", ""]
+						}
+					}
+				},
+				{
+					"name": "Verify Token",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/verify",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "verify"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "👥 Users",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"account\": \"testuser\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\",\n    \"real_name\": \"Test User\",\n    \"organization\": \"Test Org\",\n    \"role_id\": 1,\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", ""]
+						}
+					}
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/?skip=0&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", ""],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "1"]
+						}
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"real_name\": \"Updated User Name\",\n    \"organization\": \"Updated Org\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "1"]
+						}
+					}
+				},
+				{
+					"name": "Upload User Avatar",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "path/to/avatar.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/1/avatar",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "1", "avatar"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📋 Tickets",
+			"item": [
+				{
+					"name": "Create Ticket",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"TICKET-001\",\n    \"title\": \"Test Ticket\",\n    \"description\": \"This is a test ticket\",\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/tickets/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tickets", ""]
+						}
+					}
+				},
+				{
+					"name": "Get All Tickets",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/tickets/?skip=0&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tickets", ""],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Ticket by Code",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/tickets/TICKET-001",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tickets", "TICKET-001"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📚 Libraries",
+			"item": [
+				{
+					"name": "Create Library (Complete)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"OpSWAT\",\n    \"api_endpoint\": \"https://api.opswat.com/v1\",\n    \"docker_image\": \"opswat/scanner:latest\",\n    \"docker_tag\": \"latest\",\n    \"api_key\": \"your_api_key_here\",\n    \"api_headers\": {\n        \"Content-Type\": \"application/json\",\n        \"X-API-Version\": \"1.0\"\n    },\n    \"timeout_seconds\": 60,\n    \"retry_count\": 3,\n    \"docker_env_vars\": {\n        \"API_KEY\": \"secret_key\",\n        \"DEBUG\": \"false\"\n    },\n    \"docker_ports\": {\n        \"8080\": 3000\n    },\n    \"docker_volumes\": {\n        \"/host/data\": \"/app/data\"\n    },\n    \"health_check_endpoint\": \"/health\",\n    \"description\": \"OpSWAT 惡意軟體掃描服務\",\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/libraries/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "libraries", ""]
+						}
+					}
+				},
+				{
+					"name": "Create Library (Simple Third-party API)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"VirusTotal\",\n    \"api_endpoint\": \"https://www.virustotal.com/vtapi/v2\",\n    \"api_key\": \"your_virustotal_api_key\",\n    \"description\": \"VirusTotal 在線掃描服務\",\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/libraries/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "libraries", ""]
+						}
+					}
+				},
+				{
+					"name": "Get All Libraries",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/libraries/?skip=0&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "libraries", ""],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🔧 Library Actions",
+			"item": [
+				{
+					"name": "Create Library Action (OpSWAT Basic Scan)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"library_id\": 1,\n    \"name\": \"一般掃描\",\n    \"api_path\": \"/scan/basic\",\n    \"http_method\": \"POST\",\n    \"request_schema\": {\n        \"file\": \"string (base64)\",\n        \"options\": {\n            \"timeout\": \"integer\",\n            \"deep_scan\": \"boolean\"\n        }\n    },\n    \"response_schema\": {\n        \"scan_id\": \"string\",\n        \"status\": \"string\",\n        \"result\": \"object\"\n    },\n    \"description\": \"基本惡意軟體掃描\",\n    \"execution_order\": 1,\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/library-actions/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "library-actions", ""]
+						}
+					}
+				},
+				{
+					"name": "Create Library Action (OpSWAT Advanced Scan)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"library_id\": 1,\n    \"name\": \"進階掃描\",\n    \"api_path\": \"/scan/advanced\",\n    \"http_method\": \"POST\",\n    \"request_schema\": {\n        \"file\": \"string (base64)\",\n        \"options\": {\n            \"timeout\": \"integer\",\n            \"deep_scan\": \"boolean\",\n            \"behavioral_analysis\": \"boolean\",\n            \"sandbox\": \"boolean\"\n        }\n    },\n    \"response_schema\": {\n        \"scan_id\": \"string\",\n        \"status\": \"string\",\n        \"detailed_result\": \"object\",\n        \"threat_level\": \"string\"\n    },\n    \"description\": \"進階惡意軟體掃描含行為分析\",\n    \"execution_order\": 2,\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/library-actions/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "library-actions", ""]
+						}
+					}
+				},
+				{
+					"name": "Create Library Action (VirusTotal Check)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"library_id\": 2,\n    \"name\": \"檔案檢查\",\n    \"api_path\": \"/file/report\",\n    \"http_method\": \"GET\",\n    \"request_schema\": {\n        \"resource\": \"string (file hash)\",\n        \"apikey\": \"string\"\n    },\n    \"response_schema\": {\n        \"response_code\": \"integer\",\n        \"verbose_msg\": \"string\",\n        \"positives\": \"integer\",\n        \"total\": \"integer\",\n        \"scans\": \"object\"\n    },\n    \"description\": \"VirusTotal 檔案哈希檢查\",\n    \"execution_order\": 1,\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/library-actions/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "library-actions", ""]
+						}
+					}
+				},
+				{
+					"name": "Get All Library Actions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/library-actions/?skip=0&limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["api", "library-actions", ""],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Library Actions by Library ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/library-actions/library/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "library-actions", "library", "1"]
+						}
+					}
+				},
+				{
+					"name": "Get Library Action by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/library-actions/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "library-actions", "1"]
+						}
+					}
+				},
+				{
+					"name": "Update Library Action",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"更新的描述\",\n    \"execution_order\": 3\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/library-actions/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "library-actions", "1"]
+						}
+					}
+				},
+				{
+					"name": "Delete Library Action",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/library-actions/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "library-actions", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📁 File Upload",
+			"item": [
+				{
+					"name": "Upload File",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "uploaded_file",
+									"type": "file",
+									"src": "path/to/file.zip"
+								},
+								{
+									"key": "user_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "ticket_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "unzip_password",
+									"value": "password123",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Test file upload",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/uploaded-files/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "uploaded-files", ""]
+						}
+					}
+				},
+				{
+					"name": "Get All Uploaded Files",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/uploaded-files/?skip=0&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "uploaded-files", ""],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🔄 Autoflows",
+			"item": [
+				{
+					"name": "Create Autoflow",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"recipe_id\": 1,\n    \"name\": \"Malware Scan Flow\",\n    \"description\": \"Automated malware scanning workflow\",\n    \"status\": \"active\",\n    \"allow_parallel_steps\": false,\n    \"execution_order\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/autoflows/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "autoflows", ""]
+						}
+					}
+				},
+				{
+					"name": "Get All Autoflows",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/autoflows/?skip=0&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "autoflows", ""],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📝 Processing Steps",
+			"item": [
+				{
+					"name": "Create Processing Step",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"autoflow_id\": 1,\n    \"library_action_id\": 1,\n    \"name\": \"File Scan Step\",\n    \"description\": \"Scan uploaded file for malware\",\n    \"execution_order\": 1,\n    \"parameters\": {\n        \"scan_type\": \"quick\",\n        \"timeout\": 300\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/processing-steps/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "processing-steps", ""]
+						}
+					}
+				},
+				{
+					"name": "Get All Processing Steps",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/processing-steps/?skip=0&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "processing-steps", ""],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📋 Recipes",
+			"item": [
+				{
+					"name": "Create Recipe",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Security Analysis Recipe\",\n    \"description\": \"Complete security analysis workflow\",\n    \"status\": \"active\",\n    \"allow_parallel_autoflows\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/recipes/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "recipes", ""]
+						}
+					}
+				},
+				{
+					"name": "Get All Recipes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/recipes/?skip=0&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "recipes", ""],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🗂️ Roles",
+			"item": [
+				{
+					"name": "Create Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Analyst\",\n    \"description\": \"Security Analyst Role\",\n    \"permissions\": [\"read\", \"analyze\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/roles/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "roles", ""]
+						}
+					}
+				},
+				{
+					"name": "Get All Roles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/roles/?skip=0&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "roles", ""],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📊 File Trackings",
+			"item": [
+				{
+					"name": "Get All File Trackings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/file-trackings/?skip=0&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "file-trackings", ""],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get File Tracking by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/file-trackings/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "file-trackings", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "⚙️ Web Settings",
+			"item": [
+				{
+					"name": "Create Web Setting",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"key\": \"max_upload_size\",\n    \"value\": \"100MB\",\n    \"description\": \"Maximum file upload size\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/web-settings/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "web-settings", ""]
+						}
+					}
+				},
+				{
+					"name": "Get All Web Settings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/web-settings/?skip=0&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "web-settings", ""],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://172.31.176.1:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

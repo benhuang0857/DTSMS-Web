@@ -26,15 +26,18 @@ def upgrade() -> None:
         'libraries',
         sa.Column('id', sa.BigInteger, primary_key=True),
         sa.Column('name', sa.String(100), nullable=False, unique=True, comment="Library Name"),
-        sa.Column('protocal', sa.String(50), nullable=True, comment="Protocol Type"),
-        sa.Column('baudrate', sa.Integer, nullable=True, comment="Baudrate"),
-        sa.Column('parity', sa.String(10), nullable=True, comment="Parity Type"),
-        sa.Column('stopbits', sa.Integer, nullable=True, comment="Stop Bits"),
-        sa.Column('bytesize', sa.Integer, nullable=True, comment="Byte Size"),
-        sa.Column('host', sa.String(100), nullable=True, comment="Host Address"),
-        sa.Column('port', sa.Integer, nullable=True, comment="Port Number"),
-        sa.Column('certfile', sa.String(255), nullable=True, comment="Certificate File Path"),
-        sa.Column('description', sa.String(255), nullable=True, comment="Library Description"),
+        sa.Column('api_endpoint', sa.String(500), nullable=False, comment="API Endpoint URL"),
+        sa.Column('docker_image', sa.String(255), nullable=True, comment="Docker Image Name (Optional for custom deployments)"),
+        sa.Column('docker_tag', sa.String(100), nullable=True, default='latest', comment="Docker Image Tag"),
+        sa.Column('api_key', sa.String(255), nullable=True, comment="API Authentication Key"),
+        sa.Column('api_headers', sa.JSON, nullable=True, comment="Additional API Headers"),
+        sa.Column('timeout_seconds', sa.Integer, nullable=True, default=30, comment="API Request Timeout"),
+        sa.Column('retry_count', sa.Integer, nullable=True, default=3, comment="API Request Retry Count"),
+        sa.Column('docker_env_vars', sa.JSON, nullable=True, comment="Docker Environment Variables"),
+        sa.Column('docker_ports', sa.JSON, nullable=True, comment="Docker Port Mappings"),
+        sa.Column('docker_volumes', sa.JSON, nullable=True, comment="Docker Volume Mappings"),
+        sa.Column('health_check_endpoint', sa.String(500), nullable=True, comment="Health Check API Endpoint"),
+        sa.Column('description', sa.String(500), nullable=True, comment="Library Description"),
         sa.Column(
             'status',
             sa.Enum(
@@ -51,12 +54,16 @@ def upgrade() -> None:
         sa.Column('updated_time', sa.TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False, comment="Update Time"),
     )
     op.create_table(
-        'actions',
+        'library_actions',
         sa.Column('id', sa.BigInteger, primary_key=True),
         sa.Column('library_id', sa.BigInteger, sa.ForeignKey('libraries.id', ondelete='CASCADE'), nullable=False, comment="Library ID"),
-        sa.Column('name', sa.String(100), nullable=False, comment="Action Name"),
-        sa.Column('command', sa.String(255), nullable=False, comment="Command to Execute"),
-        sa.Column('description', sa.String(255), nullable=True, comment="Action Description"),
+        sa.Column('name', sa.String(100), nullable=False, comment="Action Name (e.g., '一般掃描', '進階掃描')"),
+        sa.Column('api_path', sa.String(200), nullable=False, comment="API Path (e.g., '/scan/basic', '/scan/advanced')"),
+        sa.Column('http_method', sa.String(10), nullable=False, server_default='POST', comment="HTTP Method (GET, POST, PUT, DELETE)"),
+        sa.Column('request_schema', sa.JSON, nullable=True, comment="Request body schema/parameters"),
+        sa.Column('response_schema', sa.JSON, nullable=True, comment="Expected response schema"),
+        sa.Column('description', sa.String(500), nullable=True, comment="Action Description"),
+        sa.Column('execution_order', sa.Integer, nullable=True, comment="Suggested execution order in workflows"),
         sa.Column(
             'status',
             sa.Enum(
@@ -76,5 +83,5 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_table('actions')
+    op.drop_table('library_actions')
     op.drop_table('libraries')
