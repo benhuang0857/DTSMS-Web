@@ -71,14 +71,21 @@ async def upload_file(
         db.add(db_file)
         db.flush()
 
-        # 存 Tracking
-        db_tracking = TrackingModel(
-            uploaded_file_id=db_file.id,
-            step_id=1,
-            start_time=datetime.utcnow(),
-            status="pending"
-        )
-        db.add(db_tracking)
+        # 檢查是否有可用的 processing_steps，如果沒有則創建一個默認的 tracking 記錄
+        first_processing_step = db.query(ProcessingStepModel).first()
+        if first_processing_step:
+            # 有 processing_step，創建正常的 tracking 記錄
+            db_tracking = TrackingModel(
+                uploaded_file_id=db_file.id,
+                step_id=first_processing_step.id,
+                start_time=datetime.utcnow(),
+                status="pending"
+            )
+            db.add(db_tracking)
+        else:
+            # 沒有 processing_step，先暫時跳過 tracking
+            # 用戶可以在 Submission 頁面看到 uploaded_files，但沒有 tracking 信息
+            pass
 
         db.commit()
         db.refresh(db_file)

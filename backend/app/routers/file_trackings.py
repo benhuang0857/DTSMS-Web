@@ -19,10 +19,11 @@ def get_file_trackings(skip: int = 0, limit: int = 10,
                       current_user: dict = Depends(get_current_user)):
     """
     獲取文件追蹤記錄列表（包含關聯資料）
+    如果沒有 tracking 記錄，返回 uploaded_files 的基本信息
     """
     try:
-        # 使用 JOIN 查詢來獲取關聯資料
-        query = db.query(
+        # 首先嘗試獲取有 tracking 記錄的檔案
+        tracking_query = db.query(
             TrackingModel.id,
             TrackingModel.tracking_id,
             TrackingModel.uploaded_file_id,
@@ -47,7 +48,35 @@ def get_file_trackings(skip: int = 0, limit: int = 10,
             FileModel.user_id == current_user.id
         ).offset(skip).limit(limit)
         
-        results = query.all()
+        tracking_results = tracking_query.all()
+        
+        # 如果有 tracking 記錄，返回它們
+        if tracking_results:
+            results = tracking_results
+        else:
+            # 如果沒有 tracking 記錄，返回 uploaded_files 的基本信息
+            file_query = db.query(
+                FileModel.id,
+                FileModel.id.label('tracking_id'),  # 使用 file_id 作為 tracking_id
+                FileModel.id.label('uploaded_file_id'),
+                None.label('step_id'),
+                FileModel.created_time.label('start_time'),
+                None.label('end_time'),
+                None.label('result'),
+                FileModel.status,
+                None.label('note'),
+                FileModel.created_time,
+                FileModel.updated_time,
+                FileModel.name.label('uploaded_file_name'),
+                FileModel.status.label('uploaded_file_status'),
+                FileModel.user_id,
+                'Uploaded'.label('step_name'),
+                'File uploaded, awaiting processing'.label('step_description')
+            ).filter(
+                FileModel.user_id == current_user.id
+            ).offset(skip).limit(limit)
+            
+            results = file_query.all()
         
         # 轉換為 FileTrackingWithRelations 格式
         return [
