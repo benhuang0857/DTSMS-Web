@@ -8,28 +8,30 @@
         <div class="page-header">
           <h1 class="text-2xl font-bold text-gray-800">自動化流程設計</h1>
           <p class="text-gray-600">設計和管理 Recipe、Autoflow 和 Processing Steps</p>
+          <!-- Temporary debug info -->
+          <div class="text-sm text-gray-500 mt-2" v-if="$route.query.recipeId">
+            Debug: Recipe ID = {{ $route.query.recipeId }}, Current Recipe = {{ currentRecipe?.name || 'null' }}, Recipes Count = {{ recipes.length }}
+          </div>
         </div>
 
         <!-- Toolbar -->
-        <div class="toolbar">
+        <div class="toolbar" v-if="currentRecipe">
           <div class="toolbar-left">
-            <button @click="showRecipeModal = true" class="btn btn-primary">
-              <i class="fas fa-plus"></i> 新增 Recipe
+            <div class="recipe-info">
+              <h2 class="recipe-title">{{ currentRecipe.name }}</h2>
+              <p class="recipe-description">{{ currentRecipe.description || '沒有描述' }}</p>
+            </div>
+          </div>
+          <div class="toolbar-right">
+            <button @click="goBackToManagement" class="btn btn-secondary">
+              <i class="fas fa-arrow-left"></i> 返回管理頁面
             </button>
-            <button @click="showAutoflowModal = true" class="btn btn-secondary">
+            <button @click="showAutoflowModal = true" class="btn btn-primary">
               <i class="fas fa-plus"></i> 新增 Autoflow
             </button>
             <button @click="showProcessingStepModal = true" class="btn btn-success">
               <i class="fas fa-plus"></i> 新增 Processing Step
             </button>
-          </div>
-          <div class="toolbar-right">
-            <select @change="loadSelectedRecipeFlow" v-model="selectedRecipeId" class="form-select">
-              <option value="">選擇 Recipe 載入流程圖</option>
-              <option v-for="recipe in recipes" :key="recipe.id" :value="recipe.id">
-                {{ recipe.name }}
-              </option>
-            </select>
             <button @click="saveFlow" class="btn btn-info">
               <i class="fas fa-save"></i> 保存流程
             </button>
@@ -38,14 +40,26 @@
             </button>
           </div>
         </div>
+        
+        <!-- No Recipe Selected State -->
+        <div v-if="!currentRecipe" class="no-recipe-state">
+          <div class="no-recipe-content">
+            <i class="fas fa-utensils text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-2xl text-gray-500 mb-4">沒有選擇 Recipe</h3>
+            <p class="text-gray-400 mb-6">請從 Recipe Management 頁面選擇一個 Recipe 來編輯</p>
+            <button @click="goBackToManagement" class="btn btn-primary">
+              <i class="fas fa-arrow-left"></i> 前往 Recipe Management
+            </button>
+          </div>
+        </div>
 
         <!-- Main Content Area -->
-        <div class="main-content">
+        <div class="main-content" v-if="currentRecipe">
           <div class="canvas-container">
             <!-- Tree Display Area -->
-            <div class="tree-display-area">
+            <div class="tree-display-area" v-if="currentRecipe">
               <div class="tree-header">
-                <h3 class="tree-title">結構樹</h3>
+                <h3 class="tree-title">{{ currentRecipe.name }} - 結構樹</h3>
                 <div class="tree-controls">
                   <button @click="expandAll" class="btn-expand">
                     <i class="fas fa-expand-alt"></i> 展開全部
@@ -58,36 +72,33 @@
               
               <div class="canvas-tree-container">
                 <div class="canvas-tree-list">
-                  <!-- Recipe Level -->
-                  <div v-for="recipe in recipes" :key="recipe.id" class="canvas-tree-item recipe-level">
-                    <div class="canvas-tree-node" @click="toggleRecipe(recipe)">
+                  <!-- Recipe Level - Only show current recipe -->
+                  <div class="canvas-tree-item recipe-level">
+                    <div class="canvas-tree-node" @click="toggleCurrentRecipe()">
                       <div class="canvas-tree-line-container">
                         <div class="canvas-tree-expand-icon">
-                          <i :class="recipe.expanded ? 'fas fa-minus-square' : 'fas fa-plus-square'"></i>
+                          <i :class="currentRecipe.expanded ? 'fas fa-minus-square' : 'fas fa-plus-square'"></i>
                         </div>
                         <div class="canvas-tree-content">
                           <div 
                             class="canvas-component-item recipe-item"
                             draggable="true"
-                            @dragstart="onDragStart($event, 'recipe', recipe)"
+                            @dragstart="onDragStart($event, 'recipe', currentRecipe)"
                           >
                             <div class="canvas-item-header">
                               <span class="canvas-item-name">
-                                <i class="fas fa-book"></i> {{ recipe.name }}
+                                <i class="fas fa-book"></i> {{ currentRecipe.name }}
                               </span>
                               <div class="canvas-item-actions">
-                                <button @click.stop="loadRecipeFlow(recipe)" class="canvas-btn-flow" title="載入流程圖">
+                                <button @click.stop="loadRecipeFlow(currentRecipe)" class="canvas-btn-flow" title="載入流程圖">
                                   <i class="fas fa-project-diagram"></i>
-                                </button>
-                                <button @click.stop="editRecipe(recipe)" class="canvas-btn-edit" title="編輯">
-                                  <i class="fas fa-edit"></i>
                                 </button>
                               </div>
                             </div>
-                            <div class="canvas-item-description">{{ recipe.description }}</div>
+                            <div class="canvas-item-description">{{ currentRecipe.description }}</div>
                             <div class="canvas-item-meta">
-                              <span class="canvas-badge">{{ recipe.autoflows_count }} autoflows</span>
-                              <span class="canvas-badge">{{ recipe.recipe_steps_count }} steps</span>
+                              <span class="canvas-badge">{{ currentRecipe.autoflows_count || 0 }} autoflows</span>
+                              <span class="canvas-badge">{{ currentRecipe.recipe_steps_count || 0 }} steps</span>
                             </div>
                           </div>
                         </div>
@@ -95,16 +106,16 @@
                     </div>
                     
                     <!-- Autoflow Level -->
-                    <div v-if="recipe.expanded" class="canvas-tree-children">
+                    <div v-if="currentRecipe.expanded" class="canvas-tree-children">
                       <div 
-                        v-for="(autoflow, autoflowIndex) in recipe.autoflows || []" 
+                        v-for="(autoflow, autoflowIndex) in currentRecipe.autoflows || []" 
                         :key="autoflow.id" 
                         class="canvas-tree-item autoflow-level"
                       >
                         <div class="canvas-tree-node" @click="toggleAutoflow(autoflow)">
                           <div class="canvas-tree-line-container">
                             <div class="canvas-tree-connector">
-                              <div class="canvas-vertical-line" v-if="autoflowIndex < (recipe.autoflows?.length || 0) - 1"></div>
+                              <div class="canvas-vertical-line" v-if="autoflowIndex < (currentRecipe.autoflows?.length || 0) - 1"></div>
                               <div class="canvas-horizontal-line"></div>
                             </div>
                             <div class="canvas-tree-expand-icon">
@@ -211,53 +222,6 @@
           </div>
         </div>
 
-        <!-- Recipe Modal -->
-        <div v-if="showRecipeModal" class="modal-overlay" @click="showRecipeModal = false">
-          <div class="modal-content" @click.stop>
-            <div class="modal-header">
-              <h3>{{ editingRecipe ? '編輯 Recipe' : '新增 Recipe' }}</h3>
-              <button @click="showRecipeModal = false" class="btn-close">&times;</button>
-            </div>
-            <div class="modal-body">
-              <form @submit.prevent="submitRecipe">
-                <div class="form-group">
-                  <label>關聯的 Library</label>
-                  <select v-model="recipeForm.library_id" class="form-control">
-                    <option :value="null">選擇 Library（可選）</option>
-                    <option v-for="library in libraries" :key="library.id" :value="library.id">
-                      {{ library.name }}
-                    </option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>名稱</label>
-                  <input v-model="recipeForm.name" type="text" class="form-control" required>
-                </div>
-                <div class="form-group">
-                  <label>描述</label>
-                  <textarea v-model="recipeForm.description" class="form-control" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                  <label>狀態</label>
-                  <select v-model="recipeForm.status" class="form-control">
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label class="flex items-center">
-                    <input v-model="recipeForm.allow_parallel_autoflows" type="checkbox" class="mr-2">
-                    允許平行執行 Autoflows
-                  </label>
-                </div>
-                <div class="form-actions">
-                  <button type="button" @click="showRecipeModal = false" class="btn btn-secondary">取消</button>
-                  <button type="submit" class="btn btn-primary">{{ editingRecipe ? '更新' : '創建' }}</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
 
         <!-- Autoflow Modal -->
         <div v-if="showAutoflowModal" class="modal-overlay" @click="showAutoflowModal = false">
@@ -412,7 +376,7 @@ const autoflows = ref<any[]>([]);
 const processingSteps = ref<any[]>([]);
 const libraries = ref<any[]>([]);
 const libraryActions = ref<any[]>([]);
-const selectedRecipeId = ref('');
+const currentRecipe = ref<any>(null);
 
 // Component library state
 const selectedRecipe = ref<any>(null);
@@ -421,24 +385,12 @@ const currentAutoflows = ref<any[]>([]);
 const currentProcessingSteps = ref<any[]>([]);
 
 // Modal states
-const showRecipeModal = ref(false);
 const showAutoflowModal = ref(false);
 const showProcessingStepModal = ref(false);
 
 // Editing states
-const editingRecipe = ref<any>(null);
 const editingAutoflow = ref<any>(null);
 const editingProcessingStep = ref<any>(null);
-
-// Form data
-const recipeForm = ref({
-  library_id: null,
-  name: '',
-  description: '',
-  status: 'active',
-  allow_parallel_autoflows: false,
-  recipe_steps: []
-});
 
 const autoflowForm = ref({
   recipe_id: '',
@@ -788,33 +740,6 @@ const addRecipeWithChildren = (recipe: any, startX: number, startY: number) => {
   });
 };
 
-// Recipe operations
-const editRecipe = (recipe: any) => {
-  editingRecipe.value = recipe;
-  recipeForm.value = { ...recipe };
-  showRecipeModal.value = true;
-};
-
-const submitRecipe = async () => {
-  try {
-    if (editingRecipe.value) {
-      await axios.put(`http://172.31.176.1:8000/api/recipes/${editingRecipe.value.id}`, recipeForm.value, {
-        headers: { Authorization: `Bearer ${authToken.value}` }
-      });
-    } else {
-      await axios.post('http://172.31.176.1:8000/api/recipes', recipeForm.value, {
-        headers: { Authorization: `Bearer ${authToken.value}` }
-      });
-    }
-    
-    showRecipeModal.value = false;
-    editingRecipe.value = null;
-    recipeForm.value = { library_id: null, name: '', description: '', status: 'active', allow_parallel_autoflows: false, recipe_steps: [] };
-    await loadData();
-  } catch (error) {
-    console.error('Recipe 操作失敗:', error);
-  }
-};
 
 // Autoflow operations
 const editAutoflow = (autoflow: any) => {
@@ -907,14 +832,19 @@ const clearFlow = () => {
 
 // Load Recipe flow
 const loadRecipeFlow = (recipe: any) => {
-  console.log('Loading Recipe Flow - Recipe data:', recipe);
+  console.log('=== Loading Recipe Flow ===');
+  console.log('Recipe data:', recipe);
+  console.log('Recipe ID:', recipe.id);
+  console.log('Recipe name:', recipe.name);
   console.log('Recipe allow_parallel_autoflows:', recipe.allow_parallel_autoflows);
+  console.log('Recipe autoflows count:', recipe.autoflows?.length || 0);
+  console.log('Recipe autoflows:', recipe.autoflows);
   
   setNodes([]);
   setEdges([]);
   
   if (!recipe.autoflows || recipe.autoflows.length === 0) {
-    console.log('此 Recipe 沒有 Autoflows');
+    console.log('此 Recipe 沒有 Autoflows，無法生成流程圖');
     return;
   }
   
@@ -1035,21 +965,19 @@ const loadRecipeFlow = (recipe: any) => {
     }
   });
   
-  selectedRecipeId.value = '';
-  
-  // Clear the recipeId from URL query parameters after loading
-  if (router.currentRoute.value.query.recipeId) {
-    router.replace({ path: '/automation' });
-  }
+  // Keep the recipeId in URL for navigation consistency
+  // No need to clear it as we want to maintain the context
 };
 
-// Load selected recipe flow from dropdown
-const loadSelectedRecipeFlow = () => {
-  if (!selectedRecipeId.value) return;
-  
-  const recipe = recipes.value.find((r: { id: number }) => r.id === parseInt(selectedRecipeId.value));
-  if (recipe) {
-    loadRecipeFlow(recipe);
+// Navigation
+const goBackToManagement = () => {
+  router.push('/recipe-management');
+};
+
+// Toggle current recipe
+const toggleCurrentRecipe = () => {
+  if (currentRecipe.value) {
+    currentRecipe.value.expanded = !currentRecipe.value.expanded;
   }
 };
 
@@ -1088,34 +1016,70 @@ const toggleAutoflow = (autoflow: any) => {
 };
 
 const expandAll = () => {
-  recipes.value.forEach((recipe: { expanded: boolean; autoflows: any[] }) => {
-    recipe.expanded = true;
-    if (recipe.autoflows) {
-      recipe.autoflows.forEach((autoflow: any) => {
+  if (currentRecipe.value) {
+    currentRecipe.value.expanded = true;
+    if (currentRecipe.value.autoflows) {
+      currentRecipe.value.autoflows.forEach((autoflow: any) => {
         autoflow.expanded = true;
       });
     }
-  });
+  }
 };
 
 const collapseAll = () => {
-  recipes.value.forEach((recipe: { expanded: boolean; autoflows: any[] }) => {
-    recipe.expanded = false;
-    if (recipe.autoflows) {
-      recipe.autoflows.forEach((autoflow: any) => {
+  if (currentRecipe.value) {
+    currentRecipe.value.expanded = false;
+    if (currentRecipe.value.autoflows) {
+      currentRecipe.value.autoflows.forEach((autoflow: any) => {
         autoflow.expanded = false;
       });
     }
-  });
+  }
 };
 
 // Watch for route changes to load recipe from query parameters
-watch(() => router.currentRoute.value.query.recipeId, (newRecipeId) => {
-  if (newRecipeId && recipes.value.length > 0) {
+watch(() => router.currentRoute.value.query.recipeId, (newRecipeId, oldRecipeId) => {
+  console.log('Route recipeId changed:', newRecipeId, 'previous:', oldRecipeId, 'recipes loaded:', recipes.value.length);
+  
+  // Only proceed if the recipe ID actually changed and we're not in the middle of loading
+  if (newRecipeId && newRecipeId !== oldRecipeId && recipes.value.length > 0) {
     const targetRecipe = recipes.value.find(r => r.id === parseInt(newRecipeId as string));
     if (targetRecipe) {
-      console.log('Loading recipe from route change:', targetRecipe.name);
+      console.log('Setting current recipe from route change:', targetRecipe.name);
+      currentRecipe.value = { ...targetRecipe, expanded: true };
       loadRecipeFlow(targetRecipe);
+    } else {
+      console.log('Recipe not found with ID:', newRecipeId);
+    }
+  } else if (!newRecipeId && oldRecipeId) {
+    // Recipe ID was removed (not just initial load)
+    console.log('Recipe ID removed, clearing current recipe');
+    currentRecipe.value = null;
+  }
+});
+
+// Watch for recipes data to be loaded and then set current recipe
+watch(recipes, (newRecipes) => {
+  console.log('Recipes watcher triggered, recipes count:', newRecipes.length);
+  if (newRecipes.length > 0) {
+    const recipeId = router.currentRoute.value.query.recipeId;
+    console.log('Current route recipeId:', recipeId, 'currentRecipe exists:', !!currentRecipe.value);
+    
+    if (recipeId && !currentRecipe.value) {
+      const targetRecipe = newRecipes.find(r => r.id === parseInt(recipeId as string));
+      console.log('Looking for recipe with ID:', parseInt(recipeId as string), 'found:', !!targetRecipe);
+      
+      if (targetRecipe) {
+        console.log('Setting current recipe after recipes loaded:', targetRecipe.name);
+        console.log('Recipe data:', targetRecipe);
+        currentRecipe.value = { ...targetRecipe, expanded: true };
+        
+        // Ensure we call loadRecipeFlow after currentRecipe is set
+        nextTick(() => {
+          console.log('Calling loadRecipeFlow for:', targetRecipe.name);
+          loadRecipeFlow(targetRecipe);
+        });
+      }
     }
   }
 });
@@ -1124,18 +1088,18 @@ watch(() => router.currentRoute.value.query.recipeId, (newRecipeId) => {
 onMounted(async () => {
   await checkAuth();
   if (isAuthenticated.value) {
+    // Check if there's a recipeId in query parameters
+    const recipeId = router.currentRoute.value.query.recipeId;
+    if (!recipeId) {
+      // No recipe ID, redirect to recipe management
+      router.replace('/recipe-management');
+      return;
+    }
+    
     await loadData();
     await nextTick();
     
-    // Check if there's a recipeId in query parameters and load it
-    const recipeId = router.currentRoute.value.query.recipeId;
-    if (recipeId) {
-      const targetRecipe = recipes.value.find(r => r.id === parseInt(recipeId as string));
-      if (targetRecipe) {
-        console.log('Auto-loading recipe from URL parameter:', targetRecipe.name);
-        loadRecipeFlow(targetRecipe);
-      }
-    }
+    // The watcher will handle setting currentRecipe after data loads
   }
   
   // Add keyboard event listener
@@ -1385,6 +1349,28 @@ onUnmounted(() => {
 
 .form-actions {
   @apply flex justify-end space-x-2 mt-6;
+}
+
+/* No recipe state */
+.no-recipe-state {
+  @apply flex-1 flex items-center justify-center bg-gray-50;
+}
+
+.no-recipe-content {
+  @apply text-center p-8;
+}
+
+/* Recipe info in toolbar */
+.recipe-info {
+  @apply flex flex-col;
+}
+
+.recipe-title {
+  @apply text-lg font-semibold text-gray-800 mb-1;
+}
+
+.recipe-description {
+  @apply text-sm text-gray-600;
 }
 
 /* Vue Flow node styles */
