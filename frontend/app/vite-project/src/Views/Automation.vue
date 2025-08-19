@@ -330,6 +330,15 @@
                   </select>
                 </div>
                 <div class="form-group">
+                  <label>關聯的 Library Action</label>
+                  <select v-model="processingStepForm.library_action_id" class="form-control">
+                    <option :value="null">選擇 Library Action（可選）</option>
+                    <option v-for="action in libraryActions" :key="action.id" :value="action.id">
+                      {{ action.name }} ({{ action.library_name || 'No Library' }})
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group">
                   <label>名稱</label>
                   <input v-model="processingStepForm.name" type="text" class="form-control" required>
                 </div>
@@ -358,7 +367,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { VueFlow, useVueFlow, type Node, type Edge, type Connection, BezierEdge } from '@vue-flow/core';
 import axios from 'axios';
@@ -390,6 +399,7 @@ const userInfo = ref<{
 // Menu items
 const menuItems = ref([
   { label: 'Dashboard', link: '/dashboard', icon: 'fas fa-tachometer-alt', active: false },
+  { label: 'Recipe Management', link: '/recipe-management', icon: 'fas fa-utensils', active: false },
   { label: 'Automation Control', link: '/automation', icon: 'fas fa-robot', active: true },
   { label: 'Download History', link: '/downloads', icon: 'fas fa-download', active: false },
   { label: 'Submission', link: '/submissions', icon: 'fas fa-upload', active: false },
@@ -401,6 +411,7 @@ const recipes = ref<any[]>([]);
 const autoflows = ref<any[]>([]);
 const processingSteps = ref<any[]>([]);
 const libraries = ref<any[]>([]);
+const libraryActions = ref<any[]>([]);
 const selectedRecipeId = ref('');
 
 // Component library state
@@ -441,6 +452,7 @@ const autoflowForm = ref({
 
 const processingStepForm = ref({
   autoflow_id: '',
+  library_action_id: null,
   name: '',
   description: '',
   execution_order: 1
@@ -478,7 +490,7 @@ const checkAuth = async () => {
 const loadData = async () => {
   try {
     console.log('開始載入資料...');
-    const [recipesRes, autoflowsRes, stepsRes, librariesRes] = await Promise.all([
+    const [recipesRes, autoflowsRes, stepsRes, librariesRes, libraryActionsRes] = await Promise.all([
       axios.get('http://172.31.176.1:8000/api/recipes', {
         headers: { Authorization: `Bearer ${authToken.value}` }
       }),
@@ -490,6 +502,9 @@ const loadData = async () => {
       }),
       axios.get('http://172.31.176.1:8000/api/libraries', {
         headers: { Authorization: `Bearer ${authToken.value}` }
+      }),
+      axios.get('http://172.31.176.1:8000/api/library-actions', {
+        headers: { Authorization: `Bearer ${authToken.value}` }
       })
     ]);
     
@@ -497,13 +512,15 @@ const loadData = async () => {
       recipes: recipesRes.data,
       autoflows: autoflowsRes.data, 
       processingSteps: stepsRes.data,
-      libraries: librariesRes.data
+      libraries: librariesRes.data,
+      libraryActions: libraryActionsRes.data
     });
     
     recipes.value = recipesRes.data;
     autoflows.value = autoflowsRes.data;
     processingSteps.value = stepsRes.data;
     libraries.value = librariesRes.data;
+    libraryActions.value = libraryActionsRes.data;
     
     console.log('資料載入成功');
   } catch (error) {
@@ -841,14 +858,14 @@ const submitProcessingStep = async () => {
         headers: { Authorization: `Bearer ${authToken.value}` }
       });
     } else {
-      await axios.post('http://172.31.176.1:8000/api/processing-steps', processingStepForm.value, {
+      await axios.post('http://172.31.176.1:8000/api/processing-steps/', processingStepForm.value, {
         headers: { Authorization: `Bearer ${authToken.value}` }
       });
     }
     
     showProcessingStepModal.value = false;
     editingProcessingStep.value = null;
-    processingStepForm.value = { autoflow_id: '', name: '', description: '', execution_order: 1 };
+    processingStepForm.value = { autoflow_id: '', library_action_id: null, name: '', description: '', execution_order: 1 };
     await loadData();
   } catch (error) {
     console.error('Processing Step 操作失敗:', error);
@@ -998,6 +1015,11 @@ const loadRecipeFlow = (recipe: any) => {
   });
   
   selectedRecipeId.value = '';
+  
+  // Clear the recipeId from URL query parameters after loading
+  if (router.currentRoute.value.query.recipeId) {
+    router.replace({ path: '/automation' });
+  }
 };
 
 // Load selected recipe flow from dropdown
@@ -1066,12 +1088,33 @@ const collapseAll = () => {
   });
 };
 
+// Watch for route changes to load recipe from query parameters
+watch(() => router.currentRoute.value.query.recipeId, (newRecipeId) => {
+  if (newRecipeId && recipes.value.length > 0) {
+    const targetRecipe = recipes.value.find(r => r.id === parseInt(newRecipeId as string));
+    if (targetRecipe) {
+      console.log('Loading recipe from route change:', targetRecipe.name);
+      loadRecipeFlow(targetRecipe);
+    }
+  }
+});
+
 // Lifecycle
 onMounted(async () => {
   await checkAuth();
   if (isAuthenticated.value) {
     await loadData();
     await nextTick();
+    
+    // Check if there's a recipeId in query parameters and load it
+    const recipeId = router.currentRoute.value.query.recipeId;
+    if (recipeId) {
+      const targetRecipe = recipes.value.find(r => r.id === parseInt(recipeId as string));
+      if (targetRecipe) {
+        console.log('Auto-loading recipe from URL parameter:', targetRecipe.name);
+        loadRecipeFlow(targetRecipe);
+      }
+    }
   }
   
   // Add keyboard event listener

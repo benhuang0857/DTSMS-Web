@@ -59,6 +59,7 @@ export default defineComponent({
         const router = useRouter();
         const menuItems = ref([
             { label: 'Dashboard', link: '/dashboard', icon: 'fas fa-tachometer-alt', active: true },
+            { label: 'Recipe Management', link: '/recipe-management', icon: 'fas fa-utensils', active: false },
             { label: 'Automation Control', link: '/automation', icon: 'fas fa-robot', active: false },
             { label: 'Download History', link: '/downloads', icon: 'fas fa-download', active: false },
             { label: 'Submission', link: '/submissions', icon: 'fas fa-upload', active: false },

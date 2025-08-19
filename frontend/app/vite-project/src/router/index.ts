@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Login from '@/views/Login.vue';
 import Dashboard from '@/views/Dashboard.vue';
+import RecipeManagement from '@/views/RecipeManagement.vue';
 import Download from '@/views/Download.vue';
 import Submission from '@/views/Submission.vue';
 import Setting from '@/views/Setting.vue';
@@ -16,6 +17,11 @@ const routes = [
         path: '/dashboard',
         name: 'Dashboard',
         component: Dashboard,
+    },
+    {
+        path: '/recipe-management',
+        name: 'RecipeManagement',
+        component: RecipeManagement,
     },
     {
         path: '/downloads',

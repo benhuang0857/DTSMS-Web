@@ -8,7 +8,7 @@ class ProcessingStep(Base):
     
     id = Column(BigInteger, primary_key=True, index=True, comment="處理步驟ID")
     autoflow_id = Column(BigInteger, ForeignKey('autoflows.id'), nullable=True, comment="關聯掃描自動化腳本ID")
-    library_action_id = Column(BigInteger, ForeignKey('library_actions.id'), nullable=False, comment="關聯 Library Action ID")
+    library_action_id = Column(BigInteger, ForeignKey('library_actions.id'), nullable=True, comment="關聯 Library Action ID")
     name = Column(String(50), nullable=False, comment="步驟名稱")
     description = Column(String(255), nullable=True, comment="步驟描述")
     execution_order = Column(Integer, nullable=False, server_default="1", comment="執行順序，數字相同表示可同時執行")
