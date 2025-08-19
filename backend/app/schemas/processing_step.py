@@ -10,6 +10,7 @@ class ProcessingStepBase(BaseModel):
     execution_order: int = 1
 
 class ProcessingStepCreate(BaseModel):
+    autoflow_id: Optional[int] = None
     library_action_id: Optional[int] = None
     name: str
     description: Optional[str] = None

@@ -825,12 +825,18 @@ const editAutoflow = (autoflow: any) => {
 
 const submitAutoflow = async () => {
   try {
+    // Prepare the data with proper type conversion
+    const autoflowData = {
+      ...autoflowForm.value,
+      recipe_id: autoflowForm.value.recipe_id ? parseInt(autoflowForm.value.recipe_id as string) : null
+    };
+    
     if (editingAutoflow.value) {
-      await axios.put(`http://172.31.176.1:8000/api/autoflows/${editingAutoflow.value.id}`, autoflowForm.value, {
+      await axios.put(`http://172.31.176.1:8000/api/autoflows/${editingAutoflow.value.id}`, autoflowData, {
         headers: { Authorization: `Bearer ${authToken.value}` }
       });
     } else {
-      await axios.post('http://172.31.176.1:8000/api/autoflows', autoflowForm.value, {
+      await axios.post('http://172.31.176.1:8000/api/autoflows', autoflowData, {
         headers: { Authorization: `Bearer ${authToken.value}` }
       });
     }
@@ -853,12 +859,21 @@ const editProcessingStep = (step: any) => {
 
 const submitProcessingStep = async () => {
   try {
+    // Prepare the data with proper type conversion
+    const stepData = {
+      ...processingStepForm.value,
+      autoflow_id: processingStepForm.value.autoflow_id ? parseInt(processingStepForm.value.autoflow_id as string) : null,
+      library_action_id: processingStepForm.value.library_action_id ? parseInt(processingStepForm.value.library_action_id as string) : null
+    };
+    
+    console.log('Submitting Processing Step data:', stepData);
+    
     if (editingProcessingStep.value) {
-      await axios.put(`http://172.31.176.1:8000/api/processing-steps/${editingProcessingStep.value.id}`, processingStepForm.value, {
+      await axios.put(`http://172.31.176.1:8000/api/processing-steps/${editingProcessingStep.value.id}`, stepData, {
         headers: { Authorization: `Bearer ${authToken.value}` }
       });
     } else {
-      await axios.post('http://172.31.176.1:8000/api/processing-steps/', processingStepForm.value, {
+      await axios.post('http://172.31.176.1:8000/api/processing-steps/', stepData, {
         headers: { Authorization: `Bearer ${authToken.value}` }
       });
     }
@@ -869,6 +884,12 @@ const submitProcessingStep = async () => {
     await loadData();
   } catch (error) {
     console.error('Processing Step 操作失敗:', error);
+    if (error.response) {
+      console.error('Error response data:', error.response.data);
+      console.error('Error status:', error.response.status);
+    }
+    alert(`Processing Step 操作失敗: ${error.response?.data?.detail?.message || error.message}`);
+    console.log('Error response data:', error.response?.data);
   }
 };
 
