@@ -477,6 +477,7 @@ const checkAuth = async () => {
 // Load data
 const loadData = async () => {
   try {
+    console.log('開始載入資料...');
     const [recipesRes, autoflowsRes, stepsRes, librariesRes] = await Promise.all([
       axios.get('http://172.31.176.1:8000/api/recipes', {
         headers: { Authorization: `Bearer ${authToken.value}` }
@@ -492,12 +493,27 @@ const loadData = async () => {
       })
     ]);
     
+    console.log('API 響應資料:', {
+      recipes: recipesRes.data,
+      autoflows: autoflowsRes.data, 
+      processingSteps: stepsRes.data,
+      libraries: librariesRes.data
+    });
+    
     recipes.value = recipesRes.data;
     autoflows.value = autoflowsRes.data;
     processingSteps.value = stepsRes.data;
     libraries.value = librariesRes.data;
+    
+    console.log('資料載入成功');
   } catch (error) {
     console.error('載入資料失敗:', error);
+    if (typeof error === 'object' && error !== null) {
+      const errObj = error as { response?: any; message?: string };
+      console.error('錯誤詳情:', errObj.response?.data || errObj.message);
+    } else {
+      console.error('錯誤詳情:', String(error));
+    }
   }
 };
 

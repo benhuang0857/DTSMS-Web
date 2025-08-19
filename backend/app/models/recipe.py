@@ -8,6 +8,7 @@ class Recipe(Base):
     __tablename__ = 'recipes'
     
     id = Column(BigInteger, primary_key=True, index=True, comment="站點自動化腳本ID")
+    library_id = Column(Integer, ForeignKey('libraries.id', ondelete='SET NULL'), nullable=True, comment="關聯的Library ID")
     name = Column(String(255), nullable=False, comment="腳本名稱")
     description = Column(Text, nullable=True, comment="腳本描述")
     status = Column(Enum(BasicStatus, name="basic_status"), nullable=False, server_default="active", comment="狀態")
@@ -16,6 +17,7 @@ class Recipe(Base):
     updated_time = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False, comment="更新時間")
 
     # Relationships
+    library = relationship("Library", lazy="select")
     recipe_steps = relationship("RecipeStep", back_populates="recipe", lazy="select", cascade="all, delete-orphan")
     autoflows = relationship("Autoflow", back_populates="recipe", lazy="select")
 

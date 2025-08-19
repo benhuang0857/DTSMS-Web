@@ -36,8 +36,10 @@ def get_autoflows(skip: int = 0, limit: int = 10,
             processing_steps_data = [
                 {
                     "id": step.id,
+                    "autoflow_id": step.autoflow_id,
                     "name": step.name,
                     "description": step.description,
+                    "execution_order": step.execution_order,
                     "created_time": step.created_time,
                     "updated_time": step.updated_time
                 } for step in processing_steps
@@ -142,8 +144,10 @@ def get_autoflow(autoflow_id: int,
         steps_data = [
             {
                 "id": step.id,
+                "autoflow_id": step.autoflow_id,
                 "name": step.name,
                 "description": step.description,
+                "execution_order": step.execution_order,
                 "created_time": step.created_time,
                 "updated_time": step.updated_time
             } for step in processing_steps

@@ -8,7 +8,7 @@ from models import RecipeStep as RecipeStepModel
 from models import Library as LibraryModel
 from models import Autoflow as AutoflowModel
 from models import ProcessingStep as ProcessingStepModel
-from schemas.recipe import Recipe, RecipeWithRelations, RecipeWithSteps, RecipeWithFull, RecipeCreate, RecipeUpdate
+from schemas.recipe import Recipe, RecipeWithRelations, RecipeWithSteps, RecipeWithFull, RecipeCreate, RecipeUpdate, ProcessingStepInfo, AutoflowInfo
 from database import get_db
 from routers.auth import get_current_user
 
@@ -46,29 +46,33 @@ def get_recipes(skip: int = 0, limit: int = 10,
                     ProcessingStepModel.autoflow_id == autoflow.id
                 ).all()
                 
-                # 轉換 processing_steps 為字典格式
+                # 轉換 processing_steps 為 ProcessingStepInfo 物件
                 processing_steps_data = [
-                    {
-                        "id": step.id,
-                        "name": step.name,
-                        "description": step.description,
-                        "execution_order": step.execution_order,
-                        "created_time": step.created_time,
-                        "updated_time": step.updated_time
-                    } for step in processing_steps
+                    ProcessingStepInfo(
+                        id=step.id,
+                        autoflow_id=step.autoflow_id,
+                        library_action_id=step.library_action_id,
+                        name=step.name,
+                        description=step.description,
+                        execution_order=step.execution_order,
+                        created_time=step.created_time,
+                        updated_time=step.updated_time
+                    ) for step in processing_steps
                 ]
                 
-                autoflows_data.append({
-                    "id": autoflow.id,
-                    "name": autoflow.name,
-                    "description": autoflow.description,
-                    "status": autoflow.status,
-                    "allow_parallel_steps": autoflow.allow_parallel_steps,
-                    "execution_order": autoflow.execution_order,
-                    "created_time": autoflow.created_time,
-                    "updated_time": autoflow.updated_time,
-                    "processing_steps": processing_steps_data
-                })
+                autoflows_data.append(
+                    AutoflowInfo(
+                        id=autoflow.id,
+                        name=autoflow.name,
+                        description=autoflow.description,
+                        status=autoflow.status,
+                        allow_parallel_steps=autoflow.allow_parallel_steps,
+                        execution_order=autoflow.execution_order,
+                        created_time=autoflow.created_time,
+                        updated_time=autoflow.updated_time,
+                        processing_steps=processing_steps_data
+                    )
+                )
             
             # 取得 library 名稱
             library_name = None
@@ -385,29 +389,33 @@ def get_recipe_full(recipe_id: int,
                 ProcessingStepModel.autoflow_id == autoflow.id
             ).all()
             
-            # 轉換 processing_steps 為字典格式
+            # 轉換 processing_steps 為 ProcessingStepInfo 物件
             processing_steps_data = [
-                {
-                    "id": step.id,
-                    "name": step.name,
-                    "description": step.description,
-                    "execution_order": step.execution_order,
-                    "created_time": step.created_time,
-                    "updated_time": step.updated_time
-                } for step in processing_steps
+                ProcessingStepInfo(
+                    id=step.id,
+                    autoflow_id=step.autoflow_id,
+                    library_action_id=step.library_action_id,
+                    name=step.name,
+                    description=step.description,
+                    execution_order=step.execution_order,
+                    created_time=step.created_time,
+                    updated_time=step.updated_time
+                ) for step in processing_steps
             ]
             
-            autoflows_data.append({
-                "id": autoflow.id,
-                "name": autoflow.name,
-                "description": autoflow.description,
-                "status": autoflow.status,
-                "allow_parallel_steps": autoflow.allow_parallel_steps,
-                "execution_order": autoflow.execution_order,
-                "created_time": autoflow.created_time,
-                "updated_time": autoflow.updated_time,
-                "processing_steps": processing_steps_data
-            })
+            autoflows_data.append(
+                AutoflowInfo(
+                    id=autoflow.id,
+                    name=autoflow.name,
+                    description=autoflow.description,
+                    status=autoflow.status,
+                    allow_parallel_steps=autoflow.allow_parallel_steps,
+                    execution_order=autoflow.execution_order,
+                    created_time=autoflow.created_time,
+                    updated_time=autoflow.updated_time,
+                    processing_steps=processing_steps_data
+                )
+            )
         
         # 取得 library 名稱
         library_name = None

@@ -77,6 +77,19 @@ class RecipeWithSteps(RecipeWithRelations):
     class Config:
         from_attributes = True
 
+class ProcessingStepInfo(BaseModel):
+    id: int
+    autoflow_id: Optional[int] = None
+    library_action_id: Optional[int] = None
+    name: str
+    description: Optional[str] = None
+    execution_order: int = 1
+    created_time: datetime
+    updated_time: datetime
+
+    class Config:
+        from_attributes = True
+
 class AutoflowInfo(BaseModel):
     id: int
     name: str
@@ -86,7 +99,7 @@ class AutoflowInfo(BaseModel):
     execution_order: int = 1
     created_time: datetime
     updated_time: datetime
-    processing_steps: List[dict] = []
+    processing_steps: List[ProcessingStepInfo] = []
 
     class Config:
         from_attributes = True
